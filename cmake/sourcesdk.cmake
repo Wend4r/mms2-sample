@@ -81,7 +81,7 @@ if(WINDOWS)
 
 		${SOURCESDK_LIB_PLATFORM_DIR}/tier0.lib
 		# ${SOURCESDK_LIB_PLATFORM_DIR}/tier1.lib
-		# ${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.lib
+		${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.lib
 		# ${SOURCESDK_LIB_PLATFORM_DIR}/mathlib.lib
 	)
 elseif(LINUX)
@@ -92,7 +92,7 @@ elseif(LINUX)
 
 		${SOURCESDK_LIB_PLATFORM_DIR}/libtier0.so
 		# ${SOURCESDK_LIB_PLATFORM_DIR}/tier1.a
-		# ${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.a
+		${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.a
 		# ${SOURCESDK_LIB_PLATFORM_DIR}/mathlib.a
 	)
 else()

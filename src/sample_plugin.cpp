@@ -37,6 +37,8 @@ const char *SamplePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
 
 bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
+	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
+
 	ismm->LogMsg(this, "Hello from %s\n", GetName());
 
 	return true;
