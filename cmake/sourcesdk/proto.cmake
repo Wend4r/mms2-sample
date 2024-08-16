@@ -1,3 +1,7 @@
+# {project}
+# Copyright (C) {year} {name of author}
+# Licensed under the GPLv3 license. See LICENSE file in the project root for details.
+
 ## Generate protobuf source & headers
 if(LINUX)
 	set(SOURCESDK_PROTOC_EXECUTABLE ${SOURCESDK_DIR}/devtools/bin/linux/protoc)
