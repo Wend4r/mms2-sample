@@ -27,11 +27,6 @@ set(PROJECT_LICENSE "GPLv3")
 string(TIMESTAMP PROJECT_BUILD_DATE "%Y-%m-%d")
 string(TIMESTAMP PROJECT_BUILD_TIME "%H:%M:%S")
 
-set(SOURCESDK_PROTO_FILES
-	common/netmessages
-	common/networkbasetypes
-)
-
 set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -47,6 +42,11 @@ if(METAMOD_DIR)
 else()
 	set(METAMOD_DIR "${EXTERNAL_DIR}/metamod-source")
 endif()
+
+set(SOURCESDK_PROTO_FILES
+	common/netmessages
+	common/networkbasetypes
+)
 
 include("cmake/platform/shared.cmake")
 
