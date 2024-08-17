@@ -8,15 +8,16 @@ if(POLICY CMP0092)
 	cmake_policy(SET CMP0092 NEW) # Don't add -W3 warning level by default.
 endif()
 
-project(mms-sample
+project(mms2-sample
 	VERSION 1.0.0
 	DESCRIPTION "Sample"
-	HOMEPAGE_URL "https://github.com/Wend4r/mms-sample"
+	HOMEPAGE_URL "https://github.com/Wend4r/mms2-sample"
 	LANGUAGES C CXX
 )
 
-string(TOLOWER "${PROJECT_NAME}" PROJECT_NAME_LOWER)
-string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+string(REGEX REPLACE "^[^-]*-" "" PROJECT_NAME_SUBSTRING "${PROJECT_NAME}")
+string(TOLOWER "${PROJECT_NAME_SUBSTRING}" PROJECT_NAME_LOWER)
+string(TOUPPER "${PROJECT_NAME_SUBSTRING}" PROJECT_NAME_UPPER)
 
 set(PROJECT_OUTPUT_NAME "sample")
 
