@@ -31,17 +31,18 @@ set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-if(SOURCESDK_DIR)
-	file(TO_CMAKE_PATH "${SOURCESDK_DIR}" SOURCESDK_DIR)
-else()
-	set(SOURCESDK_DIR "${EXTERNAL_DIR}/hl2sdk")
-endif()
+function(set_or_external_dir VAR_NAME DEFAULT_DIR)
+	if(${VAR_NAME})
+		file(TO_CMAKE_PATH "${${VAR_NAME}}" ${VAR_NAME})
+	else()
+		set(${VAR_NAME} "${EXTERNAL_DIR}/${DEFAULT_DIR}")
+	endif()
 
-if(METAMOD_DIR)
-	file(TO_CMAKE_PATH "${METAMOD_DIR}" METAMOD_DIR)
-else()
-	set(METAMOD_DIR "${EXTERNAL_DIR}/metamod-source")
-endif()
+	set(${VAR_NAME} "${${VAR_NAME}}" PARENT_SCOPE)
+endfunction()
+
+set_or_external_dir(SOURCESDK_DIR "hl2sdk")
+set_or_external_dir(METAMOD_DIR "metamod-source")
 
 set(SOURCESDK_PROTO_FILES
 	common/netmessages
