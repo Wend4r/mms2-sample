@@ -24,6 +24,8 @@
 
 #include <stddef.h>
 
+#define GLOBALS_NAMEOF_ARGUMENTS(var) #var, var
+
 class IVEngineServer2;
 class ICvar;
 class IFileSystem;

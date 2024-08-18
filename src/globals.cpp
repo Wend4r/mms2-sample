@@ -39,15 +39,19 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 
 void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl)
 {
-	const char *pszFormat = "[%s] %s = %p\n";
+	static const char *s_pszFormat = "[%s] %s = %p\n";
 
 	const char *pszLogTag = pl->GetLogTag();
 
-	ismm->ConPrintf(pszFormat, pszLogTag, "g_pEngineServer", g_pEngineServer);
-	ismm->ConPrintf(pszFormat, pszLogTag, "g_pCVar", g_pCVar);
-	ismm->ConPrintf(pszFormat, pszLogTag, "g_pFullFileSystem", g_pFullFileSystem);
-	ismm->ConPrintf(pszFormat, pszLogTag, "g_pSource2Server", g_pSource2Server);
-	ismm->ConPrintf(pszFormat, pszLogTag, "g_pNetworkServerService", g_pNetworkServerService);
+#define GLOBALS_DEBUG_VARIABLE(var) ismm->ConPrintf(s_pszFormat, pszLogTag, GLOBALS_NAMEOF_ARGUMENTS(var))
+
+	GLOBALS_DEBUG_VARIABLE(g_pEngineServer);
+	GLOBALS_DEBUG_VARIABLE(g_pCVar);
+	GLOBALS_DEBUG_VARIABLE(g_pFullFileSystem);
+	GLOBALS_DEBUG_VARIABLE(g_pSource2Server);
+	GLOBALS_DEBUG_VARIABLE(g_pNetworkServerService);
+
+#undef GLOBALS_DEBUG_VARIABLE
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)
