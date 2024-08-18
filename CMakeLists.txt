@@ -57,9 +57,9 @@ elseif(WINDOWS)
 	include("cmake/platform/windows.cmake")
 endif()
 
-include("cmake/metamod.cmake")
 include("cmake/sourcesdk.cmake")
 include("cmake/sourcesdk/proto.cmake")
+include("cmake/metamod.cmake")
 
 set(SOURCE_FILES
 	${SOURCE_DIR}/globals.cpp
