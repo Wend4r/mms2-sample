@@ -32,6 +32,7 @@ class ISource2Server;
 namespace SourceMM
 {
 	class ISmmAPI;
+	class ISmmPlugin;
 }; // SourceMM
 
 class CGlobalVars;
@@ -40,6 +41,7 @@ class CGameEntitySystem;
 #include <interfaces/interfaces.h>
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
+extern void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl);
 extern bool DestoryGlobals(char *error, size_t maxlen);
 
 extern CGlobalVars *GetGameGlobals();

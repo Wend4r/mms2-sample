@@ -51,6 +51,8 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
+	DebugGlobals(ismm, this);
+
 	// ...
 
 	META_CONPRINTF("%s started!\n", GetName());
