@@ -19,11 +19,34 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <globals.hpp>
+
+#include <ISmmPlugin.h>
+
 #include <iserver.h>
 #include <tier0/dbg.h>
 
-class CGlobalVars;
-class CGameEntitySystem;
+bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
+{
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pEngineServer, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pCVar, ICvar, CVAR_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetServerFactory, g_pSource2Server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
+
+	return true;
+}
+
+bool DestoryGlobals(char *error, size_t maxlen)
+{
+	g_pEngineServer = NULL;
+	g_pCVar = NULL;
+	g_pFullFileSystem = NULL;
+	g_pSource2Server = NULL;
+	g_pNetworkServerService = NULL;
+
+	return true;
+}
 
 // AMNOTE: Should only be called within the active game loop (i e map should be loaded and active) 
 // otherwise that'll be nullptr!
@@ -35,15 +58,15 @@ CGlobalVars *GetGameGlobals()
 	{
 		AssertMsg(server, "Server is not ready");
 
-		return nullptr;
+		return NULL;
 	}
 
-	return g_pNetworkServerService->GetIGameServer()->GetGlobals();
+	return server->GetGlobals();
 }
 
 CGameEntitySystem *GameEntitySystem()
 {
 	AssertMsgAlways(false, "Not implemented");
 
-	return nullptr;
+	return NULL;
 }

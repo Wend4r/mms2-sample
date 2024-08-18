@@ -20,6 +20,11 @@
  */
 
 #include <sample_plugin.hpp>
+#include <globals.hpp>
+
+#include <sourcehook/sourcehook.h>
+
+#include <iserver.h>
 
 static SamplePlugin s_aSamplePlugin;
 SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
@@ -39,15 +44,29 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 {
 	PLUGIN_SAVEVARS();
 
-	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
+	META_CONPRINTF("Starting %s plugin...\n", GetName());
 
-	META_LOG(this, "Hello from %s\n", GetName());
+	if(!InitGlobals(ismm, error, maxlen))
+	{
+		return false;
+	}
+
+	// ...
+
+	META_CONPRINTF("%s started!\n", GetName());
 
 	return true;
 }
 
 bool SamplePlugin::Unload(char *error, size_t maxlen)
 {
+	if(!DestoryGlobals(error, maxlen))
+	{
+		return false;
+	}
+
+	// ...
+
 	return true;
 }
 
