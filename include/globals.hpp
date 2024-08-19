@@ -20,11 +20,11 @@
  */
 
 #ifndef _INCLUDE_METAMOD_SOURCE_GLOBALS_HPP_
-#define _INCLUDE_METAMOD_SOURCE_GLOBALS_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_GLOBALS_HPP_
 
-#include <stddef.h>
+#	include <stddef.h>
 
-#define GLOBALS_NAMEOF_ARGUMENTS(var) #var, var
+#	define GLOBALS_NAMEOF_ARGUMENTS(var) #var, var
 
 class IVEngineServer2;
 class ICvar;
@@ -40,7 +40,7 @@ namespace SourceMM
 class CGlobalVars;
 class CGameEntitySystem;
 
-#include <interfaces/interfaces.h>
+#	include <interfaces/interfaces.h>
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
 extern void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl);

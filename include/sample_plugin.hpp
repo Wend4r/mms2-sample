@@ -20,9 +20,9 @@
  */
 
 #ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
-#define _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 
-#include <ISmmPlugin.h>
+#	include <ISmmPlugin.h>
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener
 {
