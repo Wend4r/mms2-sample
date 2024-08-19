@@ -42,6 +42,9 @@ public: // IMetamodListener
 	bool Pause(char *error, size_t maxlen) override;
 	bool Unpause(char *error, size_t maxlen) override;
 	void AllPluginsLoaded() override;
+
+public:
+	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;
