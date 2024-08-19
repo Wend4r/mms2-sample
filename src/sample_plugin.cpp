@@ -20,8 +20,9 @@
  */
 
 #include <sample_plugin.hpp>
-#include <proto.hpp>
 #include <globals.hpp>
+
+#include <string>
 
 #include <sourcehook/sourcehook.h>
 
@@ -155,52 +156,20 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 	// Debug a config.
 	{
-		static const char pszMemberPadding[] = " = ", 
-		                  pszEndPadding[] = "\n";
-
 		CBufferStringGrowable<1024, true> sMessage;
 
 		sMessage.Format("[%s] Receive %s message:\n", GetLogTag(), config.GetTypeName().c_str()); 
 
-#define PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL(member) PROTO_CONCAT_PROTO_MEMBER_BASE(config, member, pszMemberPadding)
-#define PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(member) PROTO_CONCAT_PROTO_MEMBER_TO_C(config, pszMemberPadding, member), pszEndPadding
-#define PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(member) PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN(config, pszMemberPadding, member), pszEndPadding
-#define PROTO_MEMEBER_TO_STRING_LOCAL(member) PROTO_MEMEBER_TO_STRING(config, member)
-
-		auto min_client_limit = PROTO_MEMEBER_TO_STRING_LOCAL(min_client_limit), 
-		     max_client_limit = PROTO_MEMEBER_TO_STRING_LOCAL(max_client_limit), 
-		     max_clients = PROTO_MEMEBER_TO_STRING_LOCAL(max_clients), 
-		     tick_interval = PROTO_MEMEBER_TO_STRING_LOCAL(tick_interval);
-
-		const char *pszMessageConcat[] =
 		{
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_multiplayer), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_loadsavegame), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_background_map), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_headless), 
-			PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL(min_client_limit), min_client_limit.c_str(), pszEndPadding, 
-			PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL(max_client_limit), max_client_limit.c_str(), pszEndPadding, 
-			PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL(max_clients), max_clients.c_str(), pszEndPadding, 
-			PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL(tick_interval), tick_interval.c_str(), pszEndPadding, 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(hostname), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(savegamename), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(s1_mapname), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(gamemode), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(server_ip_address), 
-			// PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(data), // Binary.
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_localonly), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(no_steam_server), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL(is_transition), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(previouslevel), 
-			PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL(landmarkname), 
-		};
+			CBufferStringGrowable<1024, true> sProtoMessage;
 
-#undef PROTO_MEMEBER_TO_STRING_LOCAL
-#undef PROTO_CONCAT_PROTO_MEMBER_TO_C_BOOLEAN_LOCAL
-#undef PROTO_CONCAT_PROTO_MEMBER_TO_C_LOCAL
-#undef PROTO_CONCAT_PROTO_MEMBER_BASE_LOCAL
+			sProtoMessage.Insert(0, config.DebugString().c_str());
+			sProtoMessage.Replace("\n", "\n\t");
+			
+			const char *pszProtoConcat[] = {"\t", sProtoMessage.Get()};
 
-		sMessage.AppendConcat(ARRAYSIZE(pszMessageConcat), pszMessageConcat, NULL);
+			sMessage.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
+		}
 
 		META_CONPRINT(sMessage.Get());
 	}
@@ -210,6 +179,10 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 {
 	// Debug a client.
 	{
+		static const char s_szStartWith[] = "\t", 
+		                  s_szPadding[] = ": ", 
+		                  s_szEnd[] = "\n";
+
 		CBufferStringGrowable<1024, true> sMessage;
 
 		sMessage.Format("[%s] Connect a client:\n", GetLogTag());
@@ -218,7 +191,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		if(pszName && pszName[0])
 		{
-			const char *pszNameConcat[] = {"Name: \"", pszName, "\"\n"};
+			const char *pszNameConcat[] = {s_szStartWith, "Name", s_szPadding, "\"", pszName, "\"", s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszNameConcat), pszNameConcat);
 		}
@@ -226,7 +199,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		auto sPlayerSlot = std::to_string(pClient->GetPlayerSlot().Get());
 
 		{
-			const char *pszPlayerSlotConcat[] = {"Player slot: ", sPlayerSlot.c_str(), "\n"};
+			const char *pszPlayerSlotConcat[] = {s_szStartWith, "Player slot", s_szPadding, sPlayerSlot.c_str(), s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszPlayerSlotConcat), pszPlayerSlotConcat);
 		}
@@ -234,7 +207,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		auto sEntityIndex = std::to_string(pClient->GetEntityIndex().Get());
 
 		{
-			const char *pszEntityIndexConcat[] = {"Entity index: ", sEntityIndex.c_str(), "\n"};
+			const char *pszEntityIndexConcat[] = {s_szStartWith, "Entity index", s_szPadding, sEntityIndex.c_str(), s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszEntityIndexConcat), pszEntityIndexConcat);
 		}
@@ -242,7 +215,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		auto sUserID = std::to_string(pClient->GetUserID().Get());
 
 		{
-			const char *pszUserIDConcat[] = {"UserID: ", sUserID.c_str(), "\n"};
+			const char *pszUserIDConcat[] = {s_szStartWith, "UserID", s_szPadding, sUserID.c_str(), s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszUserIDConcat), pszUserIDConcat);
 		}
@@ -250,7 +223,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		auto sSignonState = std::to_string(pClient->GetSignonState());
 
 		{
-			const char *pszSignonStateConcat[] = {"Signon state: ", sSignonState.c_str(), "\n"};
+			const char *pszSignonStateConcat[] = {s_szStartWith, "Signon state", s_szPadding, sSignonState.c_str(), s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSignonStateConcat), pszSignonStateConcat);
 		}
@@ -260,14 +233,14 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 			if(aSteamID.IsValid())
 			{
-				const char *pszSteamIDConcat[] = {"SteamID: ", aSteamID.Render(), "\n"};
+				const char *pszSteamIDConcat[] = {s_szStartWith, "SteamID", s_szPadding, "\"", aSteamID.Render(), "\"", s_szEnd};
 
 				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSteamIDConcat), pszSteamIDConcat);
 			}
 		}
 
 		{
-			const char *pszIsFakeConcat[] = {"Is fake: ", pClient->IsFakeClient() ? "true" : "false", "\n"};
+			const char *pszIsFakeConcat[] = {s_szStartWith, "Is fake", s_szPadding, pClient->IsFakeClient() ? "true" : "false", s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszIsFakeConcat), pszIsFakeConcat);
 		}
@@ -278,7 +251,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 			if(aNetAdr.GetType() != NA_NULL)
 			{
-				const char *pszAddressConcat[] = {"Address: ", aNetAdr.ToString(), "\n"};
+				const char *pszAddressConcat[] = {s_szStartWith, "Address", s_szPadding, "\"", aNetAdr.ToString(), "\"", s_szEnd};
 
 				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAddressConcat), pszAddressConcat);
 			}
@@ -287,27 +260,27 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		auto sSocket = std::to_string(socket);
 
 		{
-			const char *pszSocketConcat[] = {"Socket: ", sSocket.c_str(), "\n"};
+			const char *pszSocketConcat[] = {s_szStartWith, "Socket", s_szPadding, sSocket.c_str(), s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSocketConcat), pszSocketConcat);
 		}
 
 		if(pszChallenge && pszChallenge[0])
 		{
-			const char *pszChallengeConcat[] = {"Challenge: \"", pszChallenge, "\"\n"};
+			const char *pszChallengeConcat[] = {s_szStartWith, "Challenge", s_szPadding, "\"", pszChallenge, "\"", s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszChallengeConcat), pszChallengeConcat);
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
 		{
-			const char *pszAuthTicketConcat[] = {"Auth ticket: has\n"};
+			const char *pszAuthTicketConcat[] = {s_szStartWith, "Auth ticket", s_szPadding, "has", s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAuthTicketConcat), pszAuthTicketConcat);
 		}
 
 		{
-			const char *pszLowViolenceConcat[] = {"Low violence: ", bIsLowViolence ? "true" : "false", "\n"};
+			const char *pszLowViolenceConcat[] = {s_szStartWith, "Low violence", s_szPadding, bIsLowViolence ? "true" : "false", s_szEnd};
 
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszLowViolenceConcat), pszLowViolenceConcat);
 		}
