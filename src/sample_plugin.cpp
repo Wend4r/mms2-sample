@@ -223,19 +223,68 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszNameConcat), pszNameConcat);
 		}
 
+		auto sPlayerSlot = std::to_string(pClient->GetPlayerSlot().Get());
+
+		{
+			const char *pszPlayerSlotConcat[] = {"Player slot: ", sPlayerSlot.c_str(), "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszPlayerSlotConcat), pszPlayerSlotConcat);
+		}
+
+		auto sEntityIndex = std::to_string(pClient->GetEntityIndex().Get());
+
+		{
+			const char *pszEntityIndexConcat[] = {"Entity index: ", sEntityIndex.c_str(), "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszEntityIndexConcat), pszEntityIndexConcat);
+		}
+
+		auto sUserID = std::to_string(pClient->GetUserID().Get());
+
+		{
+			const char *pszUserIDConcat[] = {"UserID: ", sUserID.c_str(), "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszUserIDConcat), pszUserIDConcat);
+		}
+
+		auto sSignonState = std::to_string(pClient->GetSignonState());
+
+		{
+			const char *pszSignonStateConcat[] = {"Signon state: ", sSignonState.c_str(), "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSignonStateConcat), pszSignonStateConcat);
+		}
+
+		{
+			auto aSteamID = pClient->GetClientSteamID();
+
+			if(aSteamID.IsValid())
+			{
+				const char *pszSteamIDConcat[] = {"SteamID: ", aSteamID.Render(), "\n"};
+
+				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSteamIDConcat), pszSteamIDConcat);
+			}
+		}
+
+		{
+			const char *pszIsFakeConcat[] = {"Is fake: ", pClient->IsFakeClient() ? "true" : "false", "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszIsFakeConcat), pszIsFakeConcat);
+		}
+
 		if(pAddr)
 		{
 			auto &aNetAdr = pAddr->m_adr;
 
 			if(aNetAdr.GetType() != NA_NULL)
 			{
-				const char *pszAddressConcat[] = {"Address: ", pAddr->m_adr.ToString(), "\n"};
+				const char *pszAddressConcat[] = {"Address: ", aNetAdr.ToString(), "\n"};
 
 				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAddressConcat), pszAddressConcat);
 			}
 		}
 
-		std::string sSocket = std::to_string(socket);
+		auto sSocket = std::to_string(socket);
 
 		{
 			const char *pszSocketConcat[] = {"Socket: ", sSocket.c_str(), "\n"};
