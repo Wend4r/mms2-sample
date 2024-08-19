@@ -26,6 +26,9 @@
 #include <iserver.h>
 #include <tier0/dbg.h>
 
+#define GLOBALS_NAMEOF_ARGUMENTS(var) #var, var
+#define GLOBALS_DEBUG_VARIABLE(ismm, format, log_tag, var) ismm->ConPrintf(format, log_tag, GLOBALS_NAMEOF_ARGUMENTS(var))
+
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pEngineServer, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
@@ -43,15 +46,15 @@ void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl)
 
 	const char *pszLogTag = pl->GetLogTag();
 
-#define GLOBALS_DEBUG_VARIABLE(var) ismm->ConPrintf(s_pszFormat, pszLogTag, GLOBALS_NAMEOF_ARGUMENTS(var))
+#define GLOBALS_DEBUG_VARIABLE_LOCAL(var) GLOBALS_DEBUG_VARIABLE(ismm, s_pszFormat, pszLogTag, var)
 
-	GLOBALS_DEBUG_VARIABLE(g_pEngineServer);
-	GLOBALS_DEBUG_VARIABLE(g_pCVar);
-	GLOBALS_DEBUG_VARIABLE(g_pFullFileSystem);
-	GLOBALS_DEBUG_VARIABLE(g_pSource2Server);
-	GLOBALS_DEBUG_VARIABLE(g_pNetworkServerService);
+	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pEngineServer);
+	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pCVar);
+	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pFullFileSystem);
+	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pSource2Server);
+	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pNetworkServerService);
 
-#undef GLOBALS_DEBUG_VARIABLE
+#undef GLOBALS_DEBUG_VARIABLE_LOCAL
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)
