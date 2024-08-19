@@ -62,11 +62,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	if(late)
 	{
-		auto *pNewServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
+		auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
-		if(pNewServer)
+		if(pNetServer)
 		{
-			OnStartupServerHook(pNewServer->m_GameConfig, NULL, pNewServer->GetMapName());
+			OnStartupServerHook(pNetServer->m_GameConfig, NULL, pNetServer->GetMapName());
 		}
 	}
 
