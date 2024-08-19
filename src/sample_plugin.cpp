@@ -32,6 +32,7 @@
 
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
+SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
 static SamplePlugin s_aSamplePlugin;
 SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
@@ -153,6 +154,15 @@ CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
 
+void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
+{
+	auto *pClient = META_IFACEPTR(CServerSideClientBase);
+
+	OnDisconectClient(pClient, eReason);
+
+	RETURN_META(MRES_IGNORED);
+}
+
 void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
@@ -180,6 +190,8 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
+	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+
 	// Debug a client.
 	{
 		static const char s_szStartWith[] = "\t", 
@@ -289,6 +301,32 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		}
 
 		sMessage.AppendConcat(vecMessageConcat.Count(), vecMessageConcat.Base(), NULL);
+
+		META_CONPRINT(sMessage.Get());
+	}
+}
+
+void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
+{
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, true);
+
+	// Debug a disconnect.
+	{
+		static const char s_szStartWith[] = "\t", 
+		                  s_szPadding[] = ": ", 
+		                  s_szEnd[] = "\n";
+
+		CBufferStringGrowable<1024, true> sMessage;
+
+		sMessage.Format("[%s] Disconnect a client:\n", GetLogTag());
+
+		auto sReasonNumber = std::to_string((int)eReason);
+
+		{
+			const char *pszLowViolenceConcat[] = {s_szStartWith, "Reason", s_szPadding, sReasonNumber.c_str(), s_szEnd};
+
+			sMessage.AppendConcat(ARRAYSIZE(pszLowViolenceConcat), pszLowViolenceConcat, NULL);
+		}
 
 		META_CONPRINT(sMessage.Get());
 	}
