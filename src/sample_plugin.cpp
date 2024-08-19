@@ -25,11 +25,12 @@
 
 #include <sourcehook/sourcehook.h>
 
-#include <iserver.h>
+#include <serversideclient.h>
 #include <tier0/bufferstring.h>
 #include <tier0/commonmacros.h>
 
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
+SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
 
 static SamplePlugin s_aSamplePlugin;
 SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
@@ -67,6 +68,17 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		if(pNetServer)
 		{
 			OnStartupServerHook(pNetServer->m_GameConfig, NULL, pNetServer->GetMapName());
+
+			{
+				auto &vecClients = pNetServer->m_Clients;
+
+				FOR_EACH_VEC(vecClients, i)
+				{
+					auto *pClient = vecClients[i];
+
+					OnConnectClientHook(pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+				}
+			}
 		}
 	}
 
@@ -77,6 +89,15 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 bool SamplePlugin::Unload(char *error, size_t maxlen)
 {
+	{
+		auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
+
+		if(pNetServer)
+		{
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
+		}
+	}
+
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	if(!DestoryGlobals(error, maxlen))
@@ -109,7 +130,9 @@ void SamplePlugin::AllPluginsLoaded()
 
 void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
 {
-	INetworkGameServer *pNetServer = g_pNetworkServerService->GetIGameServer();
+	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
+
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
 	// Debug a config.
 	{
@@ -162,4 +185,68 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 
 		META_CONPRINT(sMessage.Get());
 	}
+}
+
+CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+{
+	{
+		CBufferStringGrowable<1024, true> sMessage;
+
+		sMessage.Format("[%s] Connect a client:\n", GetLogTag());
+
+		CUtlVector<const char *> vecMessageConcat;
+
+		if(pszName && pszName[0])
+		{
+			const char *pszNameConcat[] = {"Name: \"", pszName, "\"\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszNameConcat), pszNameConcat);
+		}
+
+		if(pAddr)
+		{
+			auto &aNetAdr = pAddr->m_adr;
+
+			if(aNetAdr.GetType() != NA_NULL)
+			{
+				const char *pszAddressConcat[] = {"Address: ", pAddr->m_adr.ToString(), "\n"};
+
+				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAddressConcat), pszAddressConcat);
+			}
+		}
+
+		std::string sSocket = std::to_string(socket);
+
+		{
+			const char *pszSocketConcat[] = {"Socket: ", sSocket.c_str(), "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSocketConcat), pszSocketConcat);
+		}
+
+		if(pszChallenge && pszChallenge[0])
+		{
+			const char *pszChallengeConcat[] = {"Challenge: \"", pszChallenge, "\"\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszChallengeConcat), pszChallengeConcat);
+		}
+
+		if(pAuthTicket && nAuthTicketLength)
+		{
+			const char *pszAuthTicketConcat[] = {"Auth ticket: has\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAuthTicketConcat), pszAuthTicketConcat);
+		}
+
+		{
+			const char *pszLowViolenceConcat[] = {"Low violence: ", bIsLowViolence ? "true" : "false", "\n"};
+
+			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszLowViolenceConcat), pszLowViolenceConcat);
+		}
+
+		sMessage.AppendConcat(vecMessageConcat.Count(), vecMessageConcat.Base(), NULL);
+
+		META_CONPRINT(sMessage.Get());
+	}
+
+	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }

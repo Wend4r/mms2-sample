@@ -24,6 +24,8 @@
 
 #	include <ISmmPlugin.h>
 
+#	include <iserver.h>
+
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener
 {
 public: // ISmmPlugin
@@ -45,6 +47,7 @@ public: // IMetamodListener
 
 public:
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
+	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;
