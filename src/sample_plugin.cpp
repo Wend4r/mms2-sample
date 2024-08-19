@@ -67,7 +67,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 		if(pNetServer)
 		{
-			OnStartupServerHook(pNetServer->m_GameConfig, NULL, pNetServer->GetMapName());
+			OnStartupServer(pNetServer, pNetServer->m_GameConfig, NULL);
 
 			{
 				auto &vecClients = pNetServer->m_Clients;
@@ -76,7 +76,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 				{
 					auto *pClient = vecClients[i];
 
-					OnConnectClientHook(pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
 				}
 			}
 		}
@@ -132,6 +132,25 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 {
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
+	OnStartupServer(pNetServer, config, pWorldSession);
+
+	RETURN_META(MRES_IGNORED);
+}
+
+CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
+                                                         const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+{
+	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
+
+	auto *pClient = META_RESULT_ORIG_RET(CServerSideClientBase *);
+
+	OnConnectClient(pNetServer, pClient, pszName, pAddr, socket, pSplitPlayer, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
+
+	RETURN_META_VALUE(MRES_IGNORED, NULL);
+}
+
+void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
+{
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
 	// Debug a config.
@@ -187,8 +206,9 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 	}
 }
 
-CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
+	// Debug a client.
 	{
 		CBufferStringGrowable<1024, true> sMessage;
 
@@ -247,6 +267,4 @@ CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns
 
 		META_CONPRINT(sMessage.Get());
 	}
-
-	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
