@@ -77,7 +77,10 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 				{
 					auto *pClient = vecClients[i];
 
-					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					if(!pClient->IsFakeClient() && pClient->IsConnected())
+					{
+						OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					}
 				}
 			}
 		}
