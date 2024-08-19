@@ -31,7 +31,8 @@
 		{
 			"name": "Windows/Debug",
 			"description": "Debug configuration for building with Visual Studio",
-			"generator": "Debug - Visual Studio 17 2022",
+			"displayName": "Debug - Visual Studio 2022",
+			"generator": "Visual Studio 17 2022",
 			"inherits": "default",
 			"cacheVariables":
 			{
