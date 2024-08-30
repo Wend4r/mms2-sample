@@ -41,14 +41,8 @@ function(set_or_external_dir VAR_NAME DEFAULT_DIR)
 	set(${VAR_NAME} "${${VAR_NAME}}" PARENT_SCOPE)
 endfunction()
 
-set_or_external_dir(SOURCESDK_DIR "hl2sdk")
+set_or_external_dir(SOURCESDK_DIR "sourcesdk")
 set_or_external_dir(METAMOD_DIR "metamod-source")
-
-set(SOURCESDK_PROTO_FILES
-	common/netmessages
-	common/network_connection
-	common/networkbasetypes
-)
 
 include("cmake/platform/shared.cmake")
 
@@ -59,7 +53,6 @@ elseif(WINDOWS)
 endif()
 
 include("cmake/sourcesdk.cmake")
-include("cmake/sourcesdk/proto.cmake")
 include("cmake/metamod.cmake")
 
 set(SOURCE_FILES
@@ -85,4 +78,4 @@ target_link_options(${PROJECT_NAME} PRIVATE ${LINKER_OPTIONS} ${PLATFORM_LINKER_
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${COMPILE_DEFINITIONS} ${PLATFORM_COMPILE_DEFINITIONS} ${SOURCESDK_COMPILE_DEFINTIONS} ${METAMOD_COMPILE_DEFINITIONS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR} ${SOURCESDK_INCLUDE_DIR} ${METAMOD_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_LINK_LIBRARIES} ${SOURCESDK_PROTOBUF_STATIC_LIBRARY})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_BINARY_DIR} ${SOURCESDK_PROTOBUF_STATIC_LIBRARY})

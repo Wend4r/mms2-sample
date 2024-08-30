@@ -68,49 +68,11 @@ set(SOURCESDK_INCLUDE_DIR
 	${SOURCESDK_DIR}/public/tier0
 	${SOURCESDK_DIR}/public/tier1
 	${SOURCESDK_DIR}/public
+	${SOURCESDK_DIR}/thirdparty/protobuf-3.21.8/src
 	${SOURCESDK_DIR}
 )
 
-set(SOURCESDK_SOURCE_FILES
-	${SOURCESDK_SOURCE_FILES}
-
-	${SOURCESDK_DIR}/entity2/entityidentity.cpp
-	${SOURCESDK_DIR}/entity2/entitysystem.cpp
-	${SOURCESDK_DIR}/entity2/entitykeyvalues.cpp
-)
-
-if(LINUX)
-	set(SOURCESDK_SOURCE_FILES
-		${SOURCESDK_SOURCE_FILES}
-
-		${SOURCESDK_DIR}/public/tier0/memoverride.cpp # Is not usable on CMake Windows, because CMake default link libraries always link ucrt.lib
-	)
-endif()
-
 set(SOURCESDK_LIB_DIR ${SOURCESDK_DIR}/lib)
+set(SOURCESDK_BINARY_DIR "sourcesdk")
 
-if(WINDOWS)
-	set(SOURCESDK_LIB_PLATFORM_DIR "${SOURCESDK_LIB_DIR}/public/win64")
-
-	set(SOURCESDK_LINK_LIBRARIES
-		${SOURCESDK_LINK_LIBRARIES}
-
-		${SOURCESDK_LIB_PLATFORM_DIR}/tier0.lib
-		${SOURCESDK_LIB_PLATFORM_DIR}/tier1.lib
-		${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.lib
-		# ${SOURCESDK_LIB_PLATFORM_DIR}/mathlib.lib
-	)
-elseif(LINUX)
-	set(SOURCESDK_LIB_PLATFORM_DIR "${SOURCESDK_LIB_DIR}/linux64")
-
-	set(SOURCESDK_LINK_LIBRARIES
-		${SOURCESDK_LINK_LIBRARIES}
-
-		${SOURCESDK_LIB_PLATFORM_DIR}/libtier0.so
-		${SOURCESDK_LIB_PLATFORM_DIR}/tier1.a
-		${SOURCESDK_LIB_PLATFORM_DIR}/interfaces.a
-		# ${SOURCESDK_LIB_PLATFORM_DIR}/mathlib.a
-	)
-else()
-	message(FATAL_ERROR "Unsupported platform")
-endif()
+add_subdirectory(${SOURCESDK_DIR} ${SOURCESDK_BINARY_DIR})

@@ -1,6 +1,6 @@
-[submodule "HL2SDK"]
-	path = external/hl2sdk
-	url = https://github.com/Wend4r/hl2sdk.git
+[submodule "SourceSDK"]
+	path = external/sourcesdk
+	url = https://github.com/Wend4r/sourcesdk.git
 [submodule "Metamod-Source"]
 	path = external/metamod-source
 	url = https://github.com/alliedmodders/metamod-source.git
