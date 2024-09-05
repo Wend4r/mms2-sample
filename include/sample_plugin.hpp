@@ -22,9 +22,14 @@
 #ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 #	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 
+#	include <concat.hpp>
+
 #	include <ISmmPlugin.h>
 
+#	include <iloopmode.h>
 #	include <iserver.h>
+#	include <tier0/bufferstring.h>
+#	include <tier1/utlvector.h>
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener
 {
@@ -49,6 +54,11 @@ public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
 	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
+
+public: // Dump ones.
+	void DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage);
+	void DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient);
+	void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
 
 public: // Handlers.
 	void OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession);

@@ -27,7 +27,6 @@
 #include <sourcehook/sourcehook.h>
 
 #include <serversideclient.h>
-#include <tier0/bufferstring.h>
 #include <tier0/commonmacros.h>
 
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
@@ -36,6 +35,14 @@ SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, 
 
 static SamplePlugin s_aSamplePlugin;
 SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
+
+const ConcatLineString s_aEmbedConcat =
+{
+	"\t", // Start message.
+	": ", // Padding of key & value.
+	"\n", // End.
+	"\n\t", // End and next line.
+};
 
 PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
 
@@ -163,26 +170,47 @@ void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
+void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
+{
+	CBufferStringGrowable<1024> sProtoOutput;
+
+	sProtoOutput.Insert(0, aMessage.DebugString().c_str());
+	sProtoOutput.Replace("\n", aConcat.m_aEndAndNextLine);
+	
+	const char *pszProtoConcat[] = {aConcat.m_aStartWith, sProtoOutput.Get()};
+
+	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
+}
+
+void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
+{
+	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
+	aConcat.AppendToBuffer(sOutput, "Player slot", std::to_string(pClient->GetPlayerSlot().Get()).c_str());
+	aConcat.AppendToBuffer(sOutput, "Entity index", std::to_string(pClient->GetEntityIndex().Get()).c_str());
+	aConcat.AppendToBuffer(sOutput, "UserID", std::to_string(pClient->GetUserID().Get()).c_str());
+	aConcat.AppendToBuffer(sOutput, "Signon state", std::to_string(pClient->GetSignonState()).c_str());
+	aConcat.AppendToBuffer(sOutput, "SteamID", pClient->GetClientSteamID().Render());
+	aConcat.AppendToBuffer(sOutput, "Is fake", pClient->IsFakeClient() ? "true" : "false");
+	aConcat.AppendToBuffer(sOutput, "Address", pClient->GetRemoteAddress()->ToString());
+	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient() ? "true" : "false");
+}
+
+void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
+{
+	aConcat.AppendToBuffer(sOutput, "Disconnect reason", std::to_string((int)eReason).c_str());
+}
+
 void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
-	// Debug a config.
 	{
+		const auto &aConcat = s_aEmbedConcat;
+
 		CBufferStringGrowable<1024, true> sMessage;
 
-		sMessage.Format("[%s] Receive %s message:\n", GetLogTag(), config.GetTypeName().c_str()); 
-
-		{
-			CBufferStringGrowable<1024, true> sProtoMessage;
-
-			sProtoMessage.Insert(0, config.DebugString().c_str());
-			sProtoMessage.Replace("\n", "\n\t");
-			
-			const char *pszProtoConcat[] = {"\t", sProtoMessage.Get()};
-
-			sMessage.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
-		}
+		sMessage.Format("[%s] Receive %s message:\n", GetLogTag(), config.GetTypeName().c_str());
+		DumpProtobufMessage(aConcat, sMessage, config);
 
 		META_CONPRINT(sMessage.Get());
 	}
@@ -192,115 +220,24 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 {
 	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
-	// Debug a client.
 	{
-		static const char s_szStartWith[] = "\t", 
-		                  s_szPadding[] = ": ", 
-		                  s_szEnd[] = "\n";
+		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024, true> sMessage;
+		CBufferStringGrowable<1024> sMessage;
 
 		sMessage.Format("[%s] Connect a client:\n", GetLogTag());
 
-		CUtlVector<const char *> vecMessageConcat;
+		this->DumpServerSideClient(aConcat, sMessage, pClient);
 
-		if(pszName && pszName[0])
+		if(socket)
 		{
-			const char *pszNameConcat[] = {s_szStartWith, "Name", s_szPadding, "\"", pszName, "\"", s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszNameConcat), pszNameConcat);
-		}
-
-		auto sPlayerSlot = std::to_string(pClient->GetPlayerSlot().Get());
-
-		{
-			const char *pszPlayerSlotConcat[] = {s_szStartWith, "Player slot", s_szPadding, sPlayerSlot.c_str(), s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszPlayerSlotConcat), pszPlayerSlotConcat);
-		}
-
-		auto sEntityIndex = std::to_string(pClient->GetEntityIndex().Get());
-
-		{
-			const char *pszEntityIndexConcat[] = {s_szStartWith, "Entity index", s_szPadding, sEntityIndex.c_str(), s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszEntityIndexConcat), pszEntityIndexConcat);
-		}
-
-		auto sUserID = std::to_string(pClient->GetUserID().Get());
-
-		{
-			const char *pszUserIDConcat[] = {s_szStartWith, "UserID", s_szPadding, sUserID.c_str(), s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszUserIDConcat), pszUserIDConcat);
-		}
-
-		auto sSignonState = std::to_string(pClient->GetSignonState());
-
-		{
-			const char *pszSignonStateConcat[] = {s_szStartWith, "Signon state", s_szPadding, sSignonState.c_str(), s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSignonStateConcat), pszSignonStateConcat);
-		}
-
-		{
-			auto aSteamID = pClient->GetClientSteamID();
-
-			if(aSteamID.IsValid())
-			{
-				const char *pszSteamIDConcat[] = {s_szStartWith, "SteamID", s_szPadding, "\"", aSteamID.Render(), "\"", s_szEnd};
-
-				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSteamIDConcat), pszSteamIDConcat);
-			}
-		}
-
-		{
-			const char *pszIsFakeConcat[] = {s_szStartWith, "Is fake", s_szPadding, pClient->IsFakeClient() ? "true" : "false", s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszIsFakeConcat), pszIsFakeConcat);
-		}
-
-		if(pAddr)
-		{
-			auto &aNetAdr = pAddr->m_adr;
-
-			if(aNetAdr.GetType() != NA_NULL)
-			{
-				const char *pszAddressConcat[] = {s_szStartWith, "Address", s_szPadding, "\"", aNetAdr.ToString(), "\"", s_szEnd};
-
-				vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAddressConcat), pszAddressConcat);
-			}
-		}
-
-		auto sSocket = std::to_string(socket);
-
-		{
-			const char *pszSocketConcat[] = {s_szStartWith, "Socket", s_szPadding, sSocket.c_str(), s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszSocketConcat), pszSocketConcat);
-		}
-
-		if(pszChallenge && pszChallenge[0])
-		{
-			const char *pszChallengeConcat[] = {s_szStartWith, "Challenge", s_szPadding, "\"", pszChallenge, "\"", s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszChallengeConcat), pszChallengeConcat);
+			aConcat.AppendToBuffer(sMessage, "Socket", std::to_string(socket).c_str());
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
 		{
-			const char *pszAuthTicketConcat[] = {s_szStartWith, "Auth ticket", s_szPadding, "has", s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszAuthTicketConcat), pszAuthTicketConcat);
+			aConcat.AppendToBuffer(sMessage, "Auth ticket", "has");
 		}
-
-		{
-			const char *pszLowViolenceConcat[] = {s_szStartWith, "Low violence", s_szPadding, bIsLowViolence ? "true" : "false", s_szEnd};
-
-			vecMessageConcat.AddMultipleToTail(ARRAYSIZE(pszLowViolenceConcat), pszLowViolenceConcat);
-		}
-
-		sMessage.AppendConcat(vecMessageConcat.Count(), vecMessageConcat.Base(), NULL);
 
 		META_CONPRINT(sMessage.Get());
 	}
@@ -310,23 +247,14 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 {
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, true);
 
-	// Debug a disconnect.
 	{
-		static const char s_szStartWith[] = "\t", 
-		                  s_szPadding[] = ": ", 
-		                  s_szEnd[] = "\n";
+		CBufferStringGrowable<1024> sMessage;
 
-		CBufferStringGrowable<1024, true> sMessage;
+		const auto &aConcat = s_aEmbedConcat;
 
 		sMessage.Format("[%s] Disconnect a client:\n", GetLogTag());
-
-		auto sReasonNumber = std::to_string((int)eReason);
-
-		{
-			const char *pszLowViolenceConcat[] = {s_szStartWith, "Reason", s_szPadding, sReasonNumber.c_str(), s_szEnd};
-
-			sMessage.AppendConcat(ARRAYSIZE(pszLowViolenceConcat), pszLowViolenceConcat, NULL);
-		}
+		DumpServerSideClient(aConcat, sMessage, pClient);
+		DumpDisconnectReason(aConcat, sMessage, eReason);
 
 		META_CONPRINT(sMessage.Get());
 	}
