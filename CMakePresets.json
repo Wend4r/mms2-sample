@@ -8,6 +8,10 @@
 			"description": "Build using Ninja generator",
 			"generator": "Ninja",
 			"binaryDir": "${sourceDir}/build/${presetName}",
+			"cacheVariables":
+			{
+				"SOURCESDK_MALLOC_OVERRIDE": true
+			},
 			"hidden": true
 		},
 		{
