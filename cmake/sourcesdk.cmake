@@ -6,73 +6,24 @@ if(NOT SOURCESDK_DIR)
 	message(FATAL_ERROR "SOURCESDK_DIR is empty")
 endif()
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
-	set(SOURCESDK_COMPILE_DEFINTIONS
-		${SOURCESDK_COMPILE_DEFINTIONS}
-
-		-DPLATFORM_64BITS -DX64BITS
-	)
-else()
-	set(SIZEOF_BITS ${CMAKE_SIZEOF_VOID_P})
-	math(EXPR SIZEOF_BITS "${SIZEOF_BITS}*8")
-	message(FATAL_ERROR "${SIZEOF_BITS}-bit platform is not supported")
-endif()
-
-if(LINUX)
-	set(SOURCESDK_COMPILE_DEFINTIONS
-		${SOURCESDK_COMPILE_DEFINTIONS}
-
-		-DPOSIX
-		-D_LINUX -DLINUX
-
-		-Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp
-		-Dstrnicmp=strncasecmp -D_snprintf=snprintf
-		-D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp
-	)
-endif()
-
-if(WINDOWS)
-	set(SOURCESDK_COMPILE_DEFINTIONS
-		${SOURCESDK_COMPILE_DEFINTIONS}
-
-		-D_WIN32 -DWIN32
-	)
-endif()
-
-if(MSVC)
-	set(SOURCESDK_COMPILE_DEFINTIONS
-		${SOURCESDK_COMPILE_DEFINTIONS}
-
-		-DCOMPILER_MSVC -DCOMPILER_MSVC64
-	)
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(PLATFORM_COMPILE_DEFINITIONS
-		${PLATFORM_COMPILE_DEFINITIONS}
-
-		-D_DEBUG -DDEBUG
-	)
-endif()
-
-set(SOURCESDK_INCLUDE_DIR
-	${SOURCESDK_INCLUDE_DIR}
-
-	${SOURCESDK_DIR}/common
-	${SOURCESDK_DIR}/game/shared
-	${SOURCESDK_DIR}/game/server
-	${SOURCESDK_DIR}/public/engine
-	${SOURCESDK_DIR}/public/entity2
-	${SOURCESDK_DIR}/public/game/server
-	${SOURCESDK_DIR}/public/mathlib
-	${SOURCESDK_DIR}/public/tier0
-	${SOURCESDK_DIR}/public/tier1
-	${SOURCESDK_DIR}/public
-	${SOURCESDK_DIR}/thirdparty/protobuf-3.21.8/src
-	${SOURCESDK_DIR}
-)
-
-set(SOURCESDK_LIB_DIR ${SOURCESDK_DIR}/lib)
 set(SOURCESDK_BINARY_DIR "sourcesdk")
 
 add_subdirectory(${SOURCESDK_DIR} ${SOURCESDK_BINARY_DIR})
+
+function(get_sourcesdk_target_property VAR_NAME TARGET PROPERTY)
+	get_target_property(PROPERTY_VALUE ${TARGET} ${PROPERTY})
+
+	if("${PROPERTY_VALUE}" MATCHES "PROPERTY_VALUE-NOTFOUND")
+		set(${VAR_NAME} PARENT_SCOPE)
+	else()
+		set(${VAR_NAME} ${PROPERTY_VALUE} PARENT_SCOPE)
+	endif()
+endfunction()
+
+get_sourcesdk_target_property(SOURCESDK_COMPILE_OPTIONS ${SOURCESDK_BINARY_DIR} COMPILE_OPTIONS)
+get_sourcesdk_target_property(SOURCESDK_LINK_OPTIONS ${SOURCESDK_BINARY_DIR} LINK_OPTIONS)
+
+get_sourcesdk_target_property(SOURCESDK_COMPILE_DEFINITIONS ${SOURCESDK_BINARY_DIR} COMPILE_DEFINITIONS)
+get_sourcesdk_target_property(SOURCESDK_INCLUDE_DIRS ${SOURCESDK_BINARY_DIR} INCLUDE_DIRECTORIES)
+
+get_sourcesdk_target_property(SOURCESDK_LINK_LIBRARIES ${SOURCESDK_BINARY_DIR} LINK_LIBRARIES)

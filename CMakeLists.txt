@@ -44,38 +44,42 @@ endfunction()
 set_or_external_dir(SOURCESDK_DIR "sourcesdk")
 set_or_external_dir(METAMOD_DIR "metamod-source")
 
-include("cmake/platform/shared.cmake")
+include(cmake/platform/shared.cmake)
 
-if(LINUX)
-	include("cmake/platform/linux.cmake")
-elseif(WINDOWS)
-	include("cmake/platform/windows.cmake")
-endif()
-
-include("cmake/sourcesdk.cmake")
-include("cmake/metamod.cmake")
+include(cmake/sourcesdk.cmake)
+include(cmake/metamod.cmake)
 
 set(SOURCE_FILES
 	${SOURCE_DIR}/globals.cpp
 	${SOURCE_DIR}/sample_plugin.cpp
 )
 
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${SOURCESDK_SOURCE_FILES} ${SOURCESDK_PROTO_SOURCE_FILES})
+set(INCLUDE_DIRS
+	${INCLUDE_DIR}
+)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 17)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS OFF)
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	C_STANDARD 17
+	C_STANDARD_REQUIRED ON
+	C_EXTENSIONS OFF
+
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS OFF
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_OUTPUT_NAME})
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILER_OPTIONS} ${PLATFORM_COMPILER_OPTIONS})
-target_link_options(${PROJECT_NAME} PRIVATE ${LINKER_OPTIONS} ${PLATFORM_LINKER_OPTIONS})
+if(WINDOWS)
+	set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE ${COMPILE_DEFINITIONS} ${PLATFORM_COMPILE_DEFINITIONS} ${SOURCESDK_COMPILE_DEFINTIONS} ${METAMOD_COMPILE_DEFINITIONS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR} ${SOURCESDK_INCLUDE_DIR} ${METAMOD_INCLUDE_DIR})
+target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILER_OPTIONS} ${SOURCESDK_COMPILE_OPTIONS})
+target_link_options(${PROJECT_NAME} PRIVATE ${LINKER_OPTIONS} ${SOURCESDK_LINK_OPTIONS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_BINARY_DIR} ${SOURCESDK_PROTOBUF_STATIC_LIBRARY})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${COMPILE_DEFINITIONS} ${SOURCESDK_COMPILE_DEFINITIONS} ${METAMOD_COMPILE_DEFINITIONS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${SOURCESDK_INCLUDE_DIRS} ${METAMOD_INCLUDE_DIRS})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_LINK_LIBRARIES})
