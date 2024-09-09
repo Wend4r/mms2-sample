@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '.github/workflows/**.yml'
+      - '.github/workflows/build-linux.yml'
       - 'cmake/**'
       - 'external/**'
       - 'include/**'
@@ -15,7 +15,7 @@ on:
   pull_request:
     branches: [ "main" ]
     paths:
-      - '.github/workflows/**.yml'
+      - '.github/workflows/build-linux.yml'
       - 'cmake/**'
       - 'external/**'
       - 'include/**'
@@ -90,8 +90,7 @@ jobs:
       run: >
         cmake --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }}
         -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }}
-        -DCMAKE_CLANG_CXX_COMPILER=${{ matrix.compiler.cxx }}
-        -DSOURCESDK_MALLOC_OVERRIDE=${{ env.SOURCESDK_MALLOC_OVERRIDE }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }}
 
     - name: Debug - Build
       run: cmake --build --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }} --parallel --config ${{ env.CMAKE_DEBUG_CONFIG_NAME }}
@@ -107,8 +106,7 @@ jobs:
       run: >
         cmake --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }}
         -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }}
-        -DCMAKE_CLANG_CXX_COMPILER=${{ matrix.compiler.cxx }}
-        -DSOURCESDK_MALLOC_OVERRIDE=${{ env.SOURCESDK_MALLOC_OVERRIDE }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }}
 
     - name: Release - Build
       run: cmake --build --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }} --parallel --config ${{ env.CMAKE_RELEASE_CONFIG_NAME }}

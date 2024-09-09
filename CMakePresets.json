@@ -40,7 +40,8 @@
 			"inherits": "default",
 			"cacheVariables":
 			{
-				"CMAKE_BUILD_TYPE": "Debug"
+				"CMAKE_BUILD_TYPE": "Debug",
+				"SOURCESDK_MALLOC_OVERRIDE": false
 			}
 		},
 		{
@@ -51,7 +52,8 @@
 			"inherits": "default",
 			"cacheVariables":
 			{
-				"CMAKE_BUILD_TYPE": "Release"
+				"CMAKE_BUILD_TYPE": "Release",
+				"SOURCESDK_MALLOC_OVERRIDE": false
 			}
 		}
 	],
