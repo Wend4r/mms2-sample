@@ -24,6 +24,8 @@
 
 #	include <stddef.h>
 
+class Logger;
+
 class IVEngineServer2;
 class ICvar;
 class IFileSystem;
@@ -41,7 +43,7 @@ class CGameEntitySystem;
 #	include <interfaces/interfaces.h>
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
-extern void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl);
+extern void LogDetailedGlobals(Logger *pLogger);
 extern bool DestoryGlobals(char *error, size_t maxlen);
 
 extern CGlobalVars *GetGameGlobals();

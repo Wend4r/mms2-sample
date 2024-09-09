@@ -43,11 +43,13 @@ endfunction()
 
 set_or_external_dir(SOURCESDK_DIR "sourcesdk")
 set_or_external_dir(METAMOD_DIR "metamod-source")
+set_or_external_dir(LOGGER_DIR "logger")
 
 include(cmake/platform/shared.cmake)
 
 include(cmake/sourcesdk.cmake)
 include(cmake/metamod.cmake)
+include(cmake/logger.cmake)
 
 set(SOURCE_FILES
 	${SOURCE_DIR}/globals.cpp
@@ -82,6 +84,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILER_OPTIONS} ${SOURCESDK_C
 target_link_options(${PROJECT_NAME} PRIVATE ${LINK_OPTIONS} ${SOURCESDK_LINK_OPTIONS})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${COMPILE_DEFINITIONS} ${SOURCESDK_COMPILE_DEFINITIONS} ${METAMOD_COMPILE_DEFINITIONS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${SOURCESDK_INCLUDE_DIRS} ${METAMOD_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${SOURCESDK_INCLUDE_DIRS} ${METAMOD_INCLUDE_DIRS} ${LOGGER_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_BINARY_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${SOURCESDK_BINARY_DIR} ${LOGGER_BINARY_DIR})

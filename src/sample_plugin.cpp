@@ -46,6 +46,14 @@ const ConcatLineString s_aEmbedConcat =
 
 PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
 
+SamplePlugin::SamplePlugin()
+ :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
+    {
+    	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
+    }, 0, LV_DEFAULT, SAMPLE_LOGGINING_COLOR)
+{
+}
+
 const char *SamplePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
 const char *SamplePlugin::GetName()          { return META_PLUGIN_NAME; }
 const char *SamplePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
@@ -59,14 +67,17 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 {
 	PLUGIN_SAVEVARS();
 
-	META_CONPRINTF("Starting %s plugin...\n", GetName());
+	MessageFormat("Starting %s plugin...\n", GetName());
 
 	if(!InitGlobals(ismm, error, maxlen))
 	{
 		return false;
 	}
 
-	DebugGlobals(ismm, this);
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		LogDetailedGlobals(this);
+	}
 
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
@@ -94,7 +105,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		}
 	}
 
-	META_CONPRINTF("%s started!\n", GetName());
+	MessageFormat("%s started!\n", GetName());
 
 	return true;
 }
@@ -204,6 +215,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
+	if(IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -212,7 +224,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 		sMessage.Format("[%s] Receive %s message:\n", GetLogTag(), config.GetTypeName().c_str());
 		DumpProtobufMessage(aConcat, sMessage, config);
 
-		META_CONPRINT(sMessage.Get());
+		Detailed(sMessage);
 	}
 }
 
@@ -220,6 +232,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 {
 	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
+	if(IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -239,7 +252,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 			aConcat.AppendToBuffer(sMessage, "Auth ticket", "has");
 		}
 
-		META_CONPRINT(sMessage.Get());
+		Detailed(sMessage);
 	}
 }
 
@@ -247,6 +260,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 {
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, true);
 
+	if(IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringGrowable<1024> sMessage;
 
@@ -256,6 +270,6 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 		DumpServerSideClient(aConcat, sMessage, pClient);
 		DumpDisconnectReason(aConcat, sMessage, eReason);
 
-		META_CONPRINT(sMessage.Get());
+		Detailed(sMessage);
 	}
 }

@@ -24,6 +24,8 @@
 
 #	include <concat.hpp>
 
+#	include <logger.hpp>
+
 #	include <ISmmPlugin.h>
 
 #	include <iloopmode.h>
@@ -31,8 +33,13 @@
 #	include <tier0/bufferstring.h>
 #	include <tier1/utlvector.h>
 
-class SamplePlugin final : public ISmmPlugin, public IMetamodListener
+#	define SAMPLE_LOGGINING_COLOR {127, 255, 0} // Green (Chartreuse)
+
+class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public Logger
 {
+public:
+	SamplePlugin();
+
 public: // ISmmPlugin
 	const char *GetAuthor() override;
 	const char *GetName() override;

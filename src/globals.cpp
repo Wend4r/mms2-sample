@@ -21,6 +21,8 @@
 
 #include <globals.hpp>
 
+#include <logger.hpp>
+
 #include <ISmmPlugin.h>
 
 #include <iserver.h>
@@ -40,13 +42,11 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 	return true;
 }
 
-void DebugGlobals(SourceMM::ISmmAPI *ismm, SourceMM::ISmmPlugin *pl)
+void LogDetailedGlobals(Logger *pLogger)
 {
-	static const char *s_pszFormat = "[%s] %s = %p\n";
+	static const char *s_pszFormat = "%s = %p\n";
 
-	const char *pszLogTag = pl->GetLogTag();
-
-#define GLOBALS_DEBUG_VARIABLE_LOCAL(var) GLOBALS_DEBUG_VARIABLE(ismm, s_pszFormat, pszLogTag, var)
+#define GLOBALS_DEBUG_VARIABLE_LOCAL(var) pLogger->DetailedFormat(s_pszFormat, #var, var)
 
 	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pEngineServer);
 	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pCVar);

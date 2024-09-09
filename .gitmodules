@@ -4,3 +4,6 @@
 [submodule "Metamod-Source"]
 	path = external/metamod-source
 	url = https://github.com/alliedmodders/metamod-source.git
+[submodule "Logger"]
+	path = external/logger
+	url = https://github.com/Wend4r/s2u-logger.git
