@@ -221,7 +221,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 		CBufferStringGrowable<1024, true> sMessage;
 
-		sMessage.Format("[%s] Receive %s message:\n", GetLogTag(), config.GetTypeName().c_str());
+		sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
 		DumpProtobufMessage(aConcat, sMessage, config);
 
 		Detailed(sMessage);
@@ -238,7 +238,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		CBufferStringGrowable<1024> sMessage;
 
-		sMessage.Format("[%s] Connect a client:\n", GetLogTag());
+		sMessage.Insert(0, "Connect a client:\n");
 
 		this->DumpServerSideClient(aConcat, sMessage, pClient);
 
@@ -266,7 +266,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 		const auto &aConcat = s_aEmbedConcat;
 
-		sMessage.Format("[%s] Disconnect a client:\n", GetLogTag());
+		sMessage.Insert(0, "Disconnect a client:\n");
 		DumpServerSideClient(aConcat, sMessage, pClient);
 		DumpDisconnectReason(aConcat, sMessage, eReason);
 
