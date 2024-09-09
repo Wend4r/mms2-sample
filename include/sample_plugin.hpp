@@ -33,7 +33,7 @@
 #	include <tier0/bufferstring.h>
 #	include <tier1/utlvector.h>
 
-#	define SAMPLE_LOGGINING_COLOR {127, 255, 0} // Green (Chartreuse)
+#	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public Logger
 {
