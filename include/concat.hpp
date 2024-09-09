@@ -33,28 +33,28 @@ struct ConcatLineString : ConcatLineStringBase
 
 	const char *AppendToBuffer(CBufferString &sMessage, const char *aKey, const char *aValue) const
 	{
-		auto vecConcat = Base::GetKeyValueConcat(aKey, aValue);
+		const auto vecConcat = Base::GetKeyValueConcat(aKey, aValue);
 
 		return sMessage.AppendConcat(vecConcat.size(), vecConcat.data(), NULL);
 	}
 
 	const char *AppendStringToBuffer(CBufferString &sMessage, const char *aKey, const char *aValue) const
 	{
-		auto vecConcat = Base::GetKeyValueConcatString(aKey, aValue);
+		const auto vecConcat = Base::GetKeyValueConcatString(aKey, aValue);
 
 		return sMessage.AppendConcat(vecConcat.size(), vecConcat.data(), NULL);
 	}
 
 	int AppendToVector(CUtlVector<const char *> vecMessage, const char *aKey, const char *aValue) const
 	{
-		auto vecConcat = Base::GetKeyValueConcat(aKey, aValue);
+		const auto vecConcat = Base::GetKeyValueConcat(aKey, aValue);
 
 		return vecMessage.AddMultipleToTail(vecConcat.size(), vecConcat.data());
 	}
 
 	int AppendStringToVector(CUtlVector<const char *> vecMessage, const char *aKey, const char *aValue) const
 	{
-		auto vecConcat = Base::GetKeyValueConcatString(aKey, aValue);
+		const auto vecConcat = Base::GetKeyValueConcatString(aKey, aValue);
 
 		return vecMessage.AddMultipleToTail(vecConcat.size(), vecConcat.data());
 	}
