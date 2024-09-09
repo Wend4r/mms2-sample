@@ -24,7 +24,9 @@
 
 #	include <stddef.h>
 
-class Logger;
+#	include <tier0/bufferstring.h>
+
+struct ConcatLineString;
 
 class IVEngineServer2;
 class ICvar;
@@ -43,7 +45,7 @@ class CGameEntitySystem;
 #	include <interfaces/interfaces.h>
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
-extern void LogDetailedGlobals(Logger *pLogger);
+extern CBufferString DumpGlobals(const ConcatLineString &aConcat);
 extern bool DestoryGlobals(char *error, size_t maxlen);
 
 extern CGlobalVars *GetGameGlobals();

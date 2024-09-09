@@ -22,6 +22,8 @@
 #include <globals.hpp>
 #include <concat.hpp>
 
+#include <string>
+
 #include <logger.hpp>
 
 #include <ISmmPlugin.h>
@@ -40,19 +42,21 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 	return true;
 }
 
-void LogDetailedGlobals(Logger *pLogger)
+CBufferString DumpGlobals(const ConcatLineString &aConcat)
 {
-	static const char *s_pszFormat = "%s = %p\n";
+	CBufferStringGrowable<1024> sMessage;
 
-#define GLOBALS_DEBUG_VARIABLE_LOCAL(var) pLogger->DetailedFormat(s_pszFormat, #var, var)
+#define GLOBALS_APPEND_VARIABLE_LOCAL(var) aConcat.AppendToBuffer(sMessage, #var, std::to_string((uintptr_t)var).c_str())
 
-	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pEngineServer);
-	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pCVar);
-	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pFullFileSystem);
-	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pSource2Server);
-	GLOBALS_DEBUG_VARIABLE_LOCAL(g_pNetworkServerService);
+	GLOBALS_APPEND_VARIABLE_LOCAL(g_pEngineServer);
+	GLOBALS_APPEND_VARIABLE_LOCAL(g_pCVar);
+	GLOBALS_APPEND_VARIABLE_LOCAL(g_pFullFileSystem);
+	GLOBALS_APPEND_VARIABLE_LOCAL(g_pSource2Server);
+	GLOBALS_APPEND_VARIABLE_LOCAL(g_pNetworkServerService);
 
 #undef GLOBALS_DEBUG_VARIABLE_LOCAL
+
+	return sMessage;
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)

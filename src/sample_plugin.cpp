@@ -22,6 +22,8 @@
 #include <sample_plugin.hpp>
 #include <globals.hpp>
 
+#include <stdint.h>
+
 #include <string>
 
 #include <sourcehook/sourcehook.h>
@@ -76,7 +78,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		LogDetailedGlobals(this);
+		Detailed(DumpGlobals(s_aEmbedConcat));
 	}
 
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
