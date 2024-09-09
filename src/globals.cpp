@@ -20,6 +20,7 @@
  */
 
 #include <globals.hpp>
+#include <concat.hpp>
 
 #include <logger.hpp>
 
@@ -27,9 +28,6 @@
 
 #include <iserver.h>
 #include <tier0/dbg.h>
-
-#define GLOBALS_NAMEOF_ARGUMENTS(var) #var, var
-#define GLOBALS_DEBUG_VARIABLE(ismm, format, log_tag, var) ismm->ConPrintf(format, log_tag, GLOBALS_NAMEOF_ARGUMENTS(var))
 
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
