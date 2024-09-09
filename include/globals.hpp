@@ -45,7 +45,7 @@ class CGameEntitySystem;
 #	include <interfaces/interfaces.h>
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
-extern CBufferString DumpGlobals(const ConcatLineString &aConcat);
+extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern bool DestoryGlobals(char *error, size_t maxlen);
 
 extern CGlobalVars *GetGameGlobals();

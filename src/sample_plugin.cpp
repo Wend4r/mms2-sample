@@ -78,7 +78,10 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		Detailed(DumpGlobals(s_aEmbedConcat));
+		CBufferStringGrowable<1024> sMessage;
+
+		DumpGlobals(s_aEmbedConcat, sMessage);
+		Detailed(sMessage);
 	}
 
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);

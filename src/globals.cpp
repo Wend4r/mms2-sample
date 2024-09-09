@@ -22,14 +22,13 @@
 #include <globals.hpp>
 #include <concat.hpp>
 
-#include <string>
-
 #include <logger.hpp>
 
 #include <ISmmPlugin.h>
 
 #include <iserver.h>
 #include <tier0/dbg.h>
+#include <tier0/strtools.h>
 
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
@@ -42,11 +41,15 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 	return true;
 }
 
-CBufferString DumpGlobals(const ConcatLineString &aConcat)
+void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
 {
-	CBufferStringGrowable<1024> sMessage;
+	char sPointer[22];
 
-#define GLOBALS_APPEND_VARIABLE_LOCAL(var) aConcat.AppendToBuffer(sMessage, #var, std::to_string((uintptr_t)var).c_str())
+#define GLOBALS_APPEND_VARIABLE_LOCAL(var)\
+	{\
+		V_snprintf(sPointer, sizeof(sPointer), "%p", var);\
+		aConcat.AppendToBuffer(sOutput, #var, sPointer);\
+	}
 
 	GLOBALS_APPEND_VARIABLE_LOCAL(g_pEngineServer);
 	GLOBALS_APPEND_VARIABLE_LOCAL(g_pCVar);
@@ -54,9 +57,7 @@ CBufferString DumpGlobals(const ConcatLineString &aConcat)
 	GLOBALS_APPEND_VARIABLE_LOCAL(g_pSource2Server);
 	GLOBALS_APPEND_VARIABLE_LOCAL(g_pNetworkServerService);
 
-#undef GLOBALS_DEBUG_VARIABLE_LOCAL
-
-	return sMessage;
+#undef GLOBALS_APPEND_VARIABLE_LOCAL
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)
