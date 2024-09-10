@@ -84,6 +84,8 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		Detailed(sMessage);
 	}
 
+	ConVar_Register(FCVAR_RELEASE | FCVAR_GAMEDLL);
+
 	if(!InitProvider(error, maxlen))
 	{
 		return false;
@@ -147,6 +149,8 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 	{
 		return false;
 	}
+
+	ConVar_Unregister();
 
 	// ...
 
