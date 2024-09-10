@@ -22,6 +22,7 @@
 #ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 #	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 
+#	include <sample/provider.hpp>
 #	include <concat.hpp>
 
 #	include <logger.hpp>
@@ -35,7 +36,8 @@
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
-class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public Logger
+class SamplePlugin final : public ISmmPlugin, public IMetamodListener, 
+                           public Sample::Provider, public Logger
 {
 public:
 	SamplePlugin();
@@ -56,6 +58,10 @@ public: // IMetamodListener
 	bool Pause(char *error, size_t maxlen) override;
 	bool Unpause(char *error, size_t maxlen) override;
 	void AllPluginsLoaded() override;
+
+public: // Utils.
+	bool LoadProvider(char *error, size_t maxlen);
+	bool UnloadProvider(char *error, size_t maxlen);
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);

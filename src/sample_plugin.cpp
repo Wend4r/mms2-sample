@@ -84,6 +84,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		Detailed(sMessage);
 	}
 
+	if(!LoadProvider(error, maxlen))
+	{
+		return false;
+	}
+
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	if(late)
@@ -128,6 +133,11 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
+	if(!UnloadProvider(error, maxlen))
+	{
+		return false;
+	}
+
 	if(!DestoryGlobals(error, maxlen))
 	{
 		return false;
@@ -154,6 +164,68 @@ void SamplePlugin::AllPluginsLoaded()
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
 	 * being initialized (for example, cvars added and events registered).
 	 */
+}
+
+bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
+{
+	GameData::CBufferStringVector vecMessages;
+
+	if(!Provider::Init(vecMessages))
+	{
+		if(IsChannelEnabled(LS_WARNING))
+		{
+			auto aWarnings = CreateWarningsScope();
+
+			FOR_EACH_VEC(vecMessages, i)
+			{
+				auto &aMessage = vecMessages[i];
+
+				aWarnings.Push(aMessage.Get());
+			}
+
+			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			{
+				Warning(rgba, sContext);
+			});
+		}
+
+		strncpy(error, "Failed to load provider. See warnings", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
+{
+	GameData::CBufferStringVector vecMessages;
+
+	if(!Provider::Destroy(vecMessages))
+	{
+		if(IsChannelEnabled(LS_WARNING))
+		{
+			auto aWarnings = CreateWarningsScope();
+
+			FOR_EACH_VEC(vecMessages, i)
+			{
+				auto &aMessage = vecMessages[i];
+
+				aWarnings.Push(aMessage.Get());
+			}
+
+			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			{
+				Warning(rgba, sContext);
+			});
+		}
+
+		strncpy(error, "Failed to unload provider. See warnings", maxlen);
+
+		return false;
+	}
+
+	return true;
 }
 
 void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
