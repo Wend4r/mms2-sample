@@ -81,9 +81,9 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 	return true;
 }
 
-bool Sample::Provider::Load(const char *pszBaseDir, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
-	if(!LoadGameData(pszBaseDir, vecMessages))
+	if(!LoadGameData(pszBaseDir, pszPathID, vecMessages))
 	{
 		return false;
 	}
@@ -119,16 +119,16 @@ CUtlSymbolLarge Sample::Provider::FindSymbol(const char *pszText) const
 	return m_aSymbolTable.Find(pszText);
 }
 
-bool Sample::Provider::LoadGameData(const char *pszBaseDir, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	char sBaseConfigDir[MAX_PATH];
 
 	snprintf((char *)sBaseConfigDir, sizeof(sBaseConfigDir), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseDir, SAMPLE_GAMECONFIG_FOLDER_DIR);
 
-	return m_aStorage.Load(this, sBaseConfigDir, vecMessages);
+	return m_aStorage.Load(this, sBaseConfigDir, pszPathID, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	struct
 	{
@@ -146,9 +146,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 	CUtlString sError;
 
-	static const char s_pszConfigPathID[] = "GAME";
-
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sError, NULL, s_pszConfigPathID}, g_KV3Format_Generic});
+	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sError, NULL, pszPathID}, g_KV3Format_Generic});
 
 	for(size_t n = 0, nSize = ARRAYSIZE(aConfigs); n < nSize; n++)
 	{
@@ -158,7 +156,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 		CUtlVector<CUtlString> vecConfigFiles;
 
-		g_pFullFileSystem->FindFileAbsoluteList(vecConfigFiles, (const char *)sConfigFile, s_pszConfigPathID);
+		g_pFullFileSystem->FindFileAbsoluteList(vecConfigFiles, (const char *)sConfigFile, pszPathID);
 
 		if(vecConfigFiles.Count() < 1)
 		{
@@ -170,7 +168,6 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 		}
 
 		aLoadPresets.m_pszFilename = vecConfigFiles[0].Get();
-
 
 		if(!aGameConfig.Load(aLoadPresets)) // Hot.
 		{

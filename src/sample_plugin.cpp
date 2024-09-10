@@ -84,6 +84,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		Detailed(sMessage);
 	}
 
+	if(!InitProvider(error, maxlen))
+	{
+		return false;
+	}
+
 	if(!LoadProvider(error, maxlen))
 	{
 		return false;
@@ -166,7 +171,7 @@ void SamplePlugin::AllPluginsLoaded()
 	 */
 }
 
-bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
+bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -195,6 +200,47 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 	}
 
 	return true;
+}
+
+bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
+{
+	GameData::CBufferStringVector vecMessages;
+
+	if(!Provider::Load(SAMPLE_BASE_DIR, SAMPLE_BASE_PATHID, vecMessages))
+	{
+		if(IsChannelEnabled(LS_WARNING))
+		{
+			auto aWarnings = CreateWarningsScope();
+
+			FOR_EACH_VEC(vecMessages, i)
+			{
+				auto &aMessage = vecMessages[i];
+
+				aWarnings.Push(aMessage.Get());
+			}
+
+			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			{
+				Warning(rgba, sContext);
+			});
+		}
+
+		strncpy(error, "Failed to load provider. See warnings", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
+{
+	char error[256];
+
+	if(!this->LoadProvider(error, sizeof(error)))
+	{
+		META_LOG(this, "%s", error);
+	}
 }
 
 bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)

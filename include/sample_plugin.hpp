@@ -32,9 +32,12 @@
 #	include <iloopmode.h>
 #	include <iserver.h>
 #	include <tier0/bufferstring.h>
+#	include <tier0/strtools.h>
 #	include <tier1/utlvector.h>
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
+#	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
+#	define SAMPLE_BASE_PATHID "GAME"
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, 
                            public Sample::Provider, public Logger
@@ -60,8 +63,12 @@ public: // IMetamodListener
 	void AllPluginsLoaded() override;
 
 public: // Utils.
+	bool InitProvider(char *error, size_t maxlen);
 	bool LoadProvider(char *error, size_t maxlen);
 	bool UnloadProvider(char *error, size_t maxlen);
+
+private: // Commands.
+	CON_COMMAND_MEMBER_F(SamplePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);

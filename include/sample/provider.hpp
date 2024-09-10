@@ -48,7 +48,7 @@ namespace Sample
 
 	public:
 		bool Init(GameData::CBufferStringVector &vecMessages);
-		bool Load(const char *pszBaseDir, GameData::CBufferStringVector &vecMessages);
+		bool Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 		bool Destroy(GameData::CBufferStringVector &vecMessages);
 
 	public:
@@ -59,13 +59,13 @@ namespace Sample
 		const DynLibUtils::CModule *FindLibrary(const char *pszName) const;
 
 	protected:
-		bool LoadGameData(const char *pszBaseDir, GameData::CBufferStringVector &vecMessages);
+		bool LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 
 	public:
 		class GameDataStorage
 		{
 		public:
-			bool Load(IGameData *pRoot, const char *pszBaseConfigDir, GameData::CBufferStringVector &vecMessages);
+			bool Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 
 		protected:
 			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
