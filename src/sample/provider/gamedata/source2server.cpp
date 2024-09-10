@@ -26,9 +26,9 @@ Sample::Provider::GameDataStorage::CSource2Server::CSource2Server()
 	{
 		auto &aCallbacks = this->m_aAddressCallbacks;
 
-		aCallbacks.Insert(this->m_aGameConfig.GetSymbol("&s_GameEventManager"), [this](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(this->m_aGameConfig.GetSymbol("&s_GameEventManager"), [this](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
 		{
-			this->m_ppGameEventManager = aAddress.RCast<decltype(this->m_ppGameEventManager)>();
+			m_ppGameEventManager = aAddress.RCast<decltype(this->m_ppGameEventManager)>();
 		});
 
 		this->m_aGameConfig.GetAddresses().AddListener(&aCallbacks);

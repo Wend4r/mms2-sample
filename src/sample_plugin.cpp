@@ -179,7 +179,9 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
-	if(!Provider::Init(vecMessages))
+	bool bResult = Provider::Init(vecMessages);
+
+	if(vecMessages.Count())
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
@@ -197,20 +199,23 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 				Warning(rgba, sContext);
 			});
 		}
-
-		strncpy(error, "Failed to load provider. See warnings", maxlen);
-
-		return false;
 	}
 
-	return true;
+	if(!bResult)
+	{
+		strncpy(error, "Failed to initialize provider. See warnings", maxlen);
+	}
+
+	return bResult;
 }
 
 bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
-	if(!Provider::Load(SAMPLE_BASE_DIR, SAMPLE_BASE_PATHID, vecMessages))
+	bool bResult = Provider::Load(SAMPLE_BASE_DIR, SAMPLE_BASE_PATHID, vecMessages);
+
+	if(vecMessages.Count())
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
@@ -229,19 +234,21 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 			});
 		}
 
-		strncpy(error, "Failed to load provider. See warnings", maxlen);
-
-		return false;
 	}
 
-	return true;
+	if(!bResult)
+	{
+		strncpy(error, "Failed to load provider. See warnings", maxlen);
+	}
+
+	return bResult;
 }
 
 void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
 
-	if(!this->LoadProvider(error, sizeof(error)))
+	if(!LoadProvider(error, sizeof(error)))
 	{
 		META_LOG(this, "%s", error);
 	}
@@ -251,7 +258,9 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
-	if(!Provider::Destroy(vecMessages))
+	bool bResult = Provider::Destroy(vecMessages);
+
+	if(vecMessages.Count())
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
@@ -270,12 +279,14 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 			});
 		}
 
-		strncpy(error, "Failed to unload provider. See warnings", maxlen);
-
-		return false;
 	}
 
-	return true;
+	if(!bResult)
+	{
+		strncpy(error, "Failed to unload provider. See warnings", maxlen);
+	}
+
+	return bResult;
 }
 
 void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
