@@ -334,19 +334,19 @@ void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferS
 void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
 {
 	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
-	aConcat.AppendToBuffer(sOutput, "Player slot", std::to_string(pClient->GetPlayerSlot().Get()).c_str());
-	aConcat.AppendToBuffer(sOutput, "Entity index", std::to_string(pClient->GetEntityIndex().Get()).c_str());
-	aConcat.AppendToBuffer(sOutput, "UserID", std::to_string(pClient->GetUserID().Get()).c_str());
-	aConcat.AppendToBuffer(sOutput, "Signon state", std::to_string(pClient->GetSignonState()).c_str());
+	aConcat.AppendToBuffer(sOutput, "Player slot", pClient->GetPlayerSlot().Get());
+	aConcat.AppendToBuffer(sOutput, "Entity index", pClient->GetEntityIndex().Get());
+	aConcat.AppendToBuffer(sOutput, "UserID", pClient->GetUserID().Get());
+	aConcat.AppendToBuffer(sOutput, "Signon state", pClient->GetSignonState());
 	aConcat.AppendToBuffer(sOutput, "SteamID", pClient->GetClientSteamID().Render());
-	aConcat.AppendToBuffer(sOutput, "Is fake", pClient->IsFakeClient() ? "true" : "false");
+	aConcat.AppendToBuffer(sOutput, "Is fake", pClient->IsFakeClient());
 	aConcat.AppendToBuffer(sOutput, "Address", pClient->GetRemoteAddress()->ToString());
-	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient() ? "true" : "false");
+	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient());
 }
 
 void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
 {
-	aConcat.AppendToBuffer(sOutput, "Disconnect reason", std::to_string((int)eReason).c_str());
+	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
 void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
@@ -382,12 +382,12 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		if(socket)
 		{
-			aConcat.AppendToBuffer(sMessage, "Socket", std::to_string(socket).c_str());
+			aConcat.AppendHandleToBuffer(sMessage, "Socket", (uint32)socket);
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
 		{
-			aConcat.AppendToBuffer(sMessage, "Auth ticket", "has");
+			aConcat.AppendBytesToBuffer(sMessage, "Auth ticket", pAuthTicket, nAuthTicketLength);
 		}
 
 		Detailed(sMessage);
