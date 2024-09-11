@@ -250,6 +250,14 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 		{
 			WarningFormat("%s\n", sMessage);
 		}
+
+		if(IsChannelEnabled(LS_DETAILED))
+		{
+			CBufferStringGrowable<1024> sMessage;
+
+			DumpRegisterGlobals(s_aEmbedConcat, sMessage);
+			Detailed(sMessage);
+		}
 	}
 }
 
@@ -369,20 +377,19 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 		DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const auto &aConcat = s_aEmbedConcat;
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat.AppendToBuffer(sBuffer, "Event loop");
-			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat2.AppendToBuffer(sBuffer, "Entity count", msg.m_nEntityCount);
-			aConcat2.AppendPointerToBuffer(sBuffer, "Entities to spawn", msg.m_pEntitiesToSpawn);
-			aConcat2.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
-			aConcat2.AppendPointerToBuffer(sBuffer, "Manifest", msg.m_pManifest);
-			aConcat2.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.AppendToBuffer(sBuffer, "Entity count", msg.m_nEntityCount);
+			aConcat.AppendPointerToBuffer(sBuffer, "Entities to spawn", msg.m_pEntitiesToSpawn);
+			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			aConcat.AppendPointerToBuffer(sBuffer, "Manifest", msg.m_pManifest);
+			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
+			Detailed(sBuffer);
 		}
 	}
 }
@@ -394,14 +401,14 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 		DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const auto &aConcat = s_aEmbedConcat;
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			Detailed(sBuffer);
 		}
 	}
 }
@@ -413,14 +420,14 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 		DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const auto &aConcat = s_aEmbedConcat;
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			Detailed(sBuffer);
 		}
 	}
 }
@@ -440,8 +447,9 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat2.AppendToBuffer(sBuffer, "Entity list");
+			aConcat.AppendToBuffer(sBuffer, "Entity list");
 			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
+			Detailed(sBuffer);
 		}
 	}
 }
@@ -662,12 +670,11 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 		DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const auto &aConcat = s_aEmbedConcat;
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			DumpEventFrameBoundary(aConcat2, sBuffer, msg);
+			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 			Detailed(sBuffer);
 		}
 	}
@@ -680,12 +687,11 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 		DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const auto &aConcat = s_aEmbedConcat;
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			DumpEventFrameBoundary(aConcat2, sBuffer, msg);
+			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 			Detailed(sBuffer);
 		}
 	}
@@ -938,7 +944,8 @@ void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferS
 
 	sProtoOutput.Insert(0, aMessage.DebugString().c_str());
 	sProtoOutput.Replace("\n", aConcat.m_aEndAndNextLine);
-	
+	sProtoOutput.SetLength(sProtoOutput.GetTotalNumber() - (V_strlen(aConcat.m_aEndAndNextLine) - 1)); // Strip the last next line, leaving the end.
+
 	const char *pszProtoConcat[] = {aConcat.m_aStartWith, sProtoOutput.Get()};
 
 	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);

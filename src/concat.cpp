@@ -120,7 +120,7 @@ const char *ConcatLineString::AppendPointerToBuffer(CBufferString &sMessage, con
 
 	V_snprintf(sPointer, sizeof(sPointer), "%p", pValue);
 
-	return AppendStringToBuffer(sMessage, pszKey, sPointer);
+	return AppendToBuffer(sMessage, pszKey, sPointer);
 }
 
 const char *ConcatLineString::AppendStringToBuffer(CBufferString &sMessage, const char *pszKey, const char *pszValue) const
