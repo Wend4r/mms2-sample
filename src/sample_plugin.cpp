@@ -242,23 +242,6 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 			Detailed(sBuffer);
 		}
 	}
-
-	{
-		char sMessage[256];
-
-		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
-		{
-			WarningFormat("%s\n", sMessage);
-		}
-
-		if(IsChannelEnabled(LS_DETAILED))
-		{
-			CBufferStringGrowable<1024> sMessage;
-
-			DumpRegisterGlobals(s_aEmbedConcat, sMessage);
-			Detailed(sMessage);
-		}
-	}
 }
 
 GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
@@ -886,6 +869,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	if(m_pFactory)
 	{
 		m_pFactory->Shutdown();
+		m_pFactory->DestroyGameSystem(this);
 	}
 
 	if(!UnregisterFirstGameSystem())
@@ -1005,14 +989,25 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
+	{
+		char sMessage[256];
+
+		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		{
+			WarningFormat("%s\n", sMessage);
+		}
+	}
+
 	if(IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024, true> sMessage;
+		CBufferStringGrowable<1024> sMessage;
 
 		sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
 		DumpProtobufMessage(aConcat, sMessage, config);
+		sMessage.AppendFormat("Register globals:\n");
+		DumpRegisterGlobals(aConcat, sMessage);
 
 		Detailed(sMessage);
 	}
