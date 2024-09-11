@@ -22,6 +22,8 @@
 #ifndef _INCLUDE_METAMOD_SOURCE_GLOBALS_HPP_
 #	define _INCLUDE_METAMOD_SOURCE_GLOBALS_HPP_
 
+#	pragma once
+
 #	include <stddef.h>
 
 #	include <tier0/bufferstring.h>

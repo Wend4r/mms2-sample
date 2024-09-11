@@ -22,6 +22,8 @@
 #ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 #	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PLUGIN_HPP_
 
+#	pragma once
+
 #	include <sample/provider.hpp>
 #	include <concat.hpp>
 

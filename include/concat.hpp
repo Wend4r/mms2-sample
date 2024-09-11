@@ -22,6 +22,8 @@
 #ifndef _INCLUDE_METAMOD_SOURCE_CONCAT_HPP_
 #	define _INCLUDE_METAMOD_SOURCE_CONCAT_HPP_
 
+#	pragma once
+
 #	include <stddef.h>
 
 #	include <vector>

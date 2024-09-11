@@ -20,7 +20,9 @@
  */
 
 #ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
-#define _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
+
+#	pragma once
 
 #	include <stddef.h>
 #	include <stdint.h>
