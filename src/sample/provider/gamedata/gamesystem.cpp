@@ -31,21 +31,21 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 			m_ppFirstGameSystem = aAddress.RCast<decltype(m_ppFirstGameSystem)>();
 		});
 
-		this->m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
+		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
 }
 
 bool Sample::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
-	return this->m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
+	return m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
 }
 
 void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 {
-	this->m_ppFirstGameSystem = nullptr;
+	m_ppFirstGameSystem = nullptr;
 }
 
 CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstGameSystem() const
 {
-	return this->m_ppFirstGameSystem;
+	return m_ppFirstGameSystem;
 }

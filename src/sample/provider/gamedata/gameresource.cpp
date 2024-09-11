@@ -39,16 +39,16 @@ Sample::Provider::GameDataStorage::CGameResource::CGameResource()
 
 bool Sample::Provider::GameDataStorage::CGameResource::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
-	return this->m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
+	return m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
 }
 
 void Sample::Provider::GameDataStorage::CGameResource::Reset()
 {
-	this->m_nEntitySystemOffset = -1;
+	m_nEntitySystemOffset = -1;
 }
 
 ptrdiff_t Sample::Provider::GameDataStorage::CGameResource::GetEntitySystemOffset() const
 {
-	return this->m_nEntitySystemOffset;
+	return m_nEntitySystemOffset;
 }
 

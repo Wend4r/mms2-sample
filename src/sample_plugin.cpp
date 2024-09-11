@@ -1024,8 +1024,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		CBufferStringGrowable<1024> sMessage;
 
 		sMessage.Insert(0, "Connect a client:\n");
-
-		this->DumpServerSideClient(aConcat, sMessage, pClient);
+		DumpServerSideClient(aConcat, sMessage, pClient);
 
 		if(socket)
 		{
