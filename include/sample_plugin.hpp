@@ -35,6 +35,7 @@
 #	include <iserver.h>
 #	include <tier0/bufferstring.h>
 #	include <tier0/strtools.h>
+#	include <tier1/convar.h>
 #	include <tier1/utlvector.h>
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
@@ -115,6 +116,9 @@ public:
 
 private: // Commands.
 	CON_COMMAND_MEMBER_F(SamplePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
+
+private: // ConVars.
+	ConVar<bool> m_aEnableFrameDetailsConVar;
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);

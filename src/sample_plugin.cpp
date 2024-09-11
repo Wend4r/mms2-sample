@@ -58,7 +58,8 @@ SamplePlugin::SamplePlugin()
  :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
-    }, 0, LV_DEFAULT, SAMPLE_LOGGINING_COLOR)
+    }, 0, LV_DEFAULT, SAMPLE_LOGGINING_COLOR),
+    m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable frame detail messages", false, true, false, true, true)
 {
 }
 
@@ -507,7 +508,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -515,7 +516,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -532,7 +533,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -550,7 +551,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -569,7 +570,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -577,7 +578,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -594,7 +595,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -612,7 +613,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -620,7 +621,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -638,7 +639,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -656,7 +657,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 
 GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
