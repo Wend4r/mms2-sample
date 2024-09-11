@@ -42,7 +42,7 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 
 		if(!m_aEngine2Library.InitFromMemory(g_pEngineServer))
 		{
-			static const char *s_pszMessageConcat[] = {"Failed to ", "get ", szEngineModuleName, " module"};
+			static const char *s_pszMessageConcat[] = {"Failed to ", "get \"", szEngineModuleName, "\" module"};
 
 			vecMessages.AddToTail({s_pszMessageConcat});
 		}
@@ -56,7 +56,7 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 
 		if(!m_aFileSystemSTDIOLibrary.InitFromMemory(g_pFullFileSystem))
 		{
-			static const char *s_pszMessageConcat[] = {"Failed to ", "get ", szFileSystemSTDIOModuleName, " module"};
+			static const char *s_pszMessageConcat[] = {"Failed to ", "get \"", szFileSystemSTDIOModuleName, "\" module"};
 
 			vecMessages.AddToTail({s_pszMessageConcat});
 		}
@@ -70,7 +70,7 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 
 		if(!m_aServerLibrary.InitFromMemory(g_pSource2Server))
 		{
-			static const char *s_pszMessageConcat[] = {"Failed to ", "get ", szServerModuleName, " module"};
+			static const char *s_pszMessageConcat[] = {"Failed to ", "get \"", szServerModuleName, "\" module"};
 
 			vecMessages.AddToTail({s_pszMessageConcat});
 		}
@@ -137,8 +137,12 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	} aConfigs[] =
 	{
 		{
-			SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME,
-			&GameDataStorage::LoadSource2Server
+			SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME,
+			&GameDataStorage::LoadGameResource
+		},
+		{
+			SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME,
+			&GameDataStorage::LoadGameSystem
 		}
 	};
 
@@ -195,14 +199,24 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	return true;
 }
 
-bool Sample::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
-	return this->m_aSource2Server.Load(pRoot, pGameConfig, vecMessages);
+	return m_aGameResource.Load(pRoot, pGameConfig, vecMessages);
 }
 
-const Sample::Provider::GameDataStorage::CSource2Server &Sample::Provider::GameDataStorage::GetSource2Server() const
+bool Sample::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
-	return m_aSource2Server;
+	return m_aGameSystem.Load(pRoot, pGameConfig, vecMessages);
+}
+
+const Sample::Provider::GameDataStorage::CGameResource &Sample::Provider::GameDataStorage::GetGameResource() const
+{
+	return m_aGameResource;
+}
+
+const Sample::Provider::GameDataStorage::CGameSystem &Sample::Provider::GameDataStorage::GetGameSystem() const
+{
+	return m_aGameSystem;
 }
 
 const Sample::Provider::GameDataStorage &Sample::Provider::GetGameDataStorage() const

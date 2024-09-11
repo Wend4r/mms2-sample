@@ -24,8 +24,6 @@
 
 #include <stdint.h>
 
-#include <string>
-
 #include <sourcehook/sourcehook.h>
 
 #include <serversideclient.h>
@@ -44,6 +42,14 @@ const ConcatLineString s_aEmbedConcat =
 	": ", // Padding of key & value.
 	"\n", // End.
 	"\n\t", // End and next line.
+};
+
+const ConcatLineString s_aEmbed2Concat =
+{
+	"\t\t",
+	": ",
+	"\n",
+	"\n\t\t",
 };
 
 PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
@@ -92,6 +98,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	}
 
 	if(!LoadProvider(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!RegisterGameFactory(error, maxlen))
 	{
 		return false;
 	}
@@ -145,6 +156,16 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 		return false;
 	}
 
+	if(!UnregisterGameResource(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!UnregisterGameFactory(error, maxlen))
+	{
+		return false;
+	}
+
 	if(!DestoryGlobals(error, maxlen))
 	{
 		return false;
@@ -173,6 +194,537 @@ void SamplePlugin::AllPluginsLoaded()
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
 	 * being initialized (for example, cvars added and events registered).
 	 */
+}
+
+bool SamplePlugin::Init()
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+
+	return true;
+}
+
+void SamplePlugin::PostInit()
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+void SamplePlugin::Shutdown()
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GameInit)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Config");
+			DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			Detailed(sBuffer);
+		}
+	}
+
+	{
+		char sMessage[256];
+
+		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		{
+			WarningFormat("%s\n", sMessage);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Config");
+			DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pResourceManifest);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GameActivate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat2.AppendToBuffer(sBuffer, "Event loop");
+			DumpEngineLoopState(aConcat, sBuffer, *msg.m_pState);
+			aConcat2.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, Disconnect)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Event loop");
+			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
+			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Event loop");
+			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat2.AppendToBuffer(sBuffer, "Entity count", msg.m_nEntityCount);
+			aConcat2.AppendPointerToBuffer(sBuffer, "Entities to spawn", msg.m_pEntitiesToSpawn);
+			aConcat2.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			aConcat2.AppendPointerToBuffer(sBuffer, "Manifest", msg.m_pManifest);
+			aConcat2.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat2.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat2.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat2.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat2.AppendToBuffer(sBuffer, "Entity list");
+			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.AppendToBuffer(sBuffer, "Entity list");
+			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
+			aConcat.AppendHandleToBuffer(sBuffer, "Previous handle", msg.m_PreviousHandle);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
+			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
+			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
+			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
+			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
+			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s\n", __FUNCTION__);
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			DumpEventFrameBoundary(aConcat2, sBuffer, msg);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			DumpEventFrameBoundary(aConcat2, sBuffer, msg);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, SaveGame)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+			aConcat.AppendToBuffer(sBuffer, "Entity list");
+			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
+			Detailed(sBuffer);
+		}
+	}
+}
+
+GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		DetailedFormat("%s:\n", __FUNCTION__);
+
+		{
+			const auto &aConcat = s_aEmbedConcat, 
+			           &aConcat2 = s_aEmbed2Concat;
+
+			CBufferStringGrowable<1024> sBuffer;
+
+			aConcat.AppendToBuffer(sBuffer, "Entity list");
+			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
+			Detailed(sBuffer);
+		}
+	}
 }
 
 bool SamplePlugin::InitProvider(char *error, size_t maxlen)
@@ -233,7 +785,6 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 				Warning(rgba, sContext);
 			});
 		}
-
 	}
 
 	if(!bResult)
@@ -242,16 +793,6 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 	}
 
 	return bResult;
-}
-
-void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
-{
-	char error[256];
-
-	if(!LoadProvider(error, sizeof(error)))
-	{
-		META_LOG(this, "%s", error);
-	}
 }
 
 bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
@@ -278,7 +819,6 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 				Warning(rgba, sContext);
 			});
 		}
-
 	}
 
 	if(!bResult)
@@ -287,6 +827,78 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	}
 
 	return bResult;
+}
+
+bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
+{
+	CGameEntitySystem **pGameEntitySystem = reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
+
+	if(!pGameEntitySystem)
+	{
+		strncpy(error, "Failed to get a game entity system", maxlen);
+	}
+
+	if(!RegisterGameEntitySystem(*pGameEntitySystem))
+	{
+		strncpy(error, "Failed to register a (game) entity system", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
+{
+	if(!UnregisterGameEntitySystem())
+	{
+		strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
+{
+	if(!RegisterFirstGameSystem(GetGameDataStorage().GetGameSystem().GetFirstGameSystem()))
+	{
+		strncpy(error, "Failed to register a first game factory", maxlen);
+
+		return false;
+	}
+
+	m_pFactory = new CGameSystemStaticFactory<SamplePlugin>(GetName(), this);
+
+	return true;
+}
+
+bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
+{
+	if(m_pFactory)
+	{
+		m_pFactory->Shutdown();
+	}
+
+	if(!UnregisterFirstGameSystem())
+	{
+		strncpy(error, "Failed to unregister a first game factory", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
+{
+	char error[256];
+
+	if(!LoadProvider(error, sizeof(error)))
+	{
+		META_LOG(this, "%s", error);
+	}
 }
 
 void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
@@ -329,6 +941,38 @@ void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferS
 	const char *pszProtoConcat[] = {aConcat.m_aStartWith, sProtoOutput.Get()};
 
 	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
+}
+
+void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
+{
+	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
+	aConcat.AppendHandleToBuffer(sOutput, "Swap chain handle", aMessage.m_hSwapChain);
+	aConcat.AppendHandleToBuffer(sOutput, "Input context handle", aMessage.m_hInputContext);
+	aConcat.AppendToBuffer(sOutput, "Window width", aMessage.m_nPlatWindowWidth);
+	aConcat.AppendToBuffer(sOutput, "Window height", aMessage.m_nPlatWindowHeight);
+	aConcat.AppendToBuffer(sOutput, "Render width", aMessage.m_nRenderWidth);
+	aConcat.AppendToBuffer(sOutput, "Render height", aMessage.m_nRenderHeight);
+}
+
+void SamplePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
+{
+	for(const auto &it : vecEntityList)
+	{
+		aConcat.AppendToBuffer(sOutput, it.Get()->GetClassname(), it.GetEntryIndex());
+	}
+}
+
+void SamplePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
+{
+	aConcat.AppendToBuffer(sOutput, "Loop state");
+	DumpEngineLoopState(aConcat2, sOutput, aMessage.m_LoopState);
+	aConcat.AppendToBuffer(sOutput, "First tick", aMessage.m_bFirstTick);
+	aConcat.AppendToBuffer(sOutput, "Last tick", aMessage.m_bLastTick);
+}
+
+void SamplePlugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
+{
+	aConcat.AppendToBuffer(sOutput, "Frame time", aMessage.m_flFrameTime);
 }
 
 void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)

@@ -40,12 +40,28 @@ namespace SourceMM
 }; // SourceMM
 
 class CGlobalVars;
+class CEntitySystem;
 class CGameEntitySystem;
+class CBaseGameSystemFactory;
 
 #	include <interfaces/interfaces.h>
+#	include <igamesystemfactory.h>
+
+#	define GLOBALS_APPEND_VARIABLE(var) aConcat.AppendPointerToBuffer(sOutput, #var, var);
+
+extern CEntitySystem *g_pEntitySystem;
+extern CGameEntitySystem *g_pGameEntitySystem;
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
+
+extern bool RegisterGameEntitySystem(CGameEntitySystem *pGameEntitySystem);
+extern bool UnregisterGameEntitySystem();
+
+extern bool RegisterFirstGameSystem(CBaseGameSystemFactory **ppFirstGameSystem);
+extern bool UnregisterFirstGameSystem();
+
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
+extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern bool DestoryGlobals(char *error, size_t maxlen);
 
 extern CGlobalVars *GetGameGlobals();

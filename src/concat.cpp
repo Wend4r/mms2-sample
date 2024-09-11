@@ -31,7 +31,7 @@ const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char
 
 const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, bool bValue) const
 {
-	return AppendStringToBuffer(sMessage, pszKey, bValue ? "true" : "false");
+	return AppendToBuffer(sMessage, pszKey, bValue ? "true" : "false");
 }
 
 const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, int iValue) const
@@ -40,7 +40,16 @@ const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char
 
 	V_snprintf(sValue, sizeof(sValue), "%i", iValue);
 
-	return AppendStringToBuffer(sMessage, pszKey, sValue);
+	return AppendToBuffer(sMessage, pszKey, sValue);
+}
+
+const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, float flValue) const
+{
+	char sValue[21];
+
+	V_snprintf(sValue, sizeof(sValue), "%f", flValue);
+
+	return AppendToBuffer(sMessage, pszKey, sValue);
 }
 
 const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, const char *pszValue) const
@@ -63,20 +72,23 @@ const char *ConcatLineString::AppendBytesToBuffer(CBufferString &sMessage, const
 
 	vecValues.reserve(nLength);
 
-	char sDataSet[nLength][4];
+	const size_t nDataSetDepthSize = 4;
 
-	const size_t nDataSetSize = sizeof(sDataSet), 
-	             nDataSetDepthSize = sizeof(*sDataSet);
+	CBufferStringGrowable<4> *psDataSet = new CBufferStringGrowable<4>[nLength];
 
 	for(int n = 0; n < nLength; n++)
 	{
-		char *psTarget = sDataSet[n];
+		auto &sByte = psDataSet[n];
 
-		V_snprintf(psTarget, sizeof(sDataSet) - n * 4, "%02X ", pData[n]);
-		vecValues.push_back(psTarget);
+		sByte.Format("%02X ", pData[n]);
+		vecValues.push_back(sByte.Get());
 	}
 
-	return AppendToBuffer(sMessage, pszKey, vecValues);
+	auto *pResult = AppendToBuffer(sMessage, pszKey, vecValues);
+
+	delete[] psDataSet;
+
+	return pResult;
 }
 
 const char *ConcatLineString::AppendHandleToBuffer(CBufferString &sMessage, const char *pszKey, uint32 uHandle) const
@@ -85,7 +97,7 @@ const char *ConcatLineString::AppendHandleToBuffer(CBufferString &sMessage, cons
 
 	V_snprintf(sHandle, sizeof(sHandle), "%u", uHandle);
 
-	return AppendStringToBuffer(sMessage, pszKey, sHandle);
+	return AppendToBuffer(sMessage, pszKey, sHandle);
 }
 
 const char *ConcatLineString::AppendHandleToBuffer(CBufferString &sMessage, const char *pszKey, uint64 uHandle) const
@@ -94,7 +106,7 @@ const char *ConcatLineString::AppendHandleToBuffer(CBufferString &sMessage, cons
 
 	V_snprintf(sHandle, sizeof(sHandle), "%llu", uHandle);
 
-	return AppendStringToBuffer(sMessage, pszKey, sHandle);
+	return AppendToBuffer(sMessage, pszKey, sHandle);
 }
 
 const char *ConcatLineString::AppendHandleToBuffer(CBufferString &sMessage, const char *pszKey, const void *pHandle) const

@@ -35,10 +35,10 @@
 #	include <gamedata.hpp> // GameData
 
 #	define SAMPLE_GAMECONFIG_FOLDER_DIR "gamedata"
-#	define SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
+#	define SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
+#	define SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
 
-class CGameEventManager;
-
+class CBaseGameSystemFactory;
 namespace Sample
 {
 	class Provider : public IGameData
@@ -68,33 +68,56 @@ namespace Sample
 			bool Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 
 		protected:
-			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 
 		public:
-			class CSource2Server
+			class CGameResource
 			{
 			public:
-				CSource2Server();
+				CGameResource();
 
 			public:
 				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 				void Reset();
 
 			public:
-				CGameEventManager **GetGameEventManagerPtr() const;
+				ptrdiff_t GetEntitySystemOffset() const;
+
+			private:
+				GameData::Config::Offsets::ListenerCallbacksCollector m_aOffsetCallbacks;
+				GameData::Config m_aGameConfig;
+
+			private: // Offsets.
+				ptrdiff_t m_nEntitySystemOffset = -1;
+			}; // CGameSystem
+
+			class CGameSystem
+			{
+			public:
+				CGameSystem();
+
+			public:
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				void Reset();
+
+			public:
+				CBaseGameSystemFactory **GetFirstGameSystem() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
 				GameData::Config m_aGameConfig;
 
 			private: // Signatures.
-				CGameEventManager **m_ppGameEventManager = nullptr;
-			}; // CSource2Server
+				CBaseGameSystemFactory **m_ppFirstGameSystem = nullptr;
+			}; // CGameSystem
 
-			const CSource2Server &GetSource2Server() const;
+			const CGameResource &GetGameResource() const;
+			const CGameSystem &GetGameSystem() const;
 
 		private:
-			CSource2Server m_aSource2Server;
+			CGameResource m_aGameResource;
+			CGameSystem m_aGameSystem;
 		}; // GameDataStorage
 
 		const GameDataStorage &GetGameDataStorage() const;

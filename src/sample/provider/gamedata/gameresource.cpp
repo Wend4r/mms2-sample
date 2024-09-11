@@ -1,3 +1,4 @@
+
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
@@ -21,31 +22,33 @@
 
 #include <sample/provider.hpp>
 
-Sample::Provider::GameDataStorage::CSource2Server::CSource2Server()
+Sample::Provider::GameDataStorage::CGameResource::CGameResource()
 {
 	{
-		auto &aCallbacks = this->m_aAddressCallbacks;
+		auto &aCallbacks = m_aOffsetCallbacks;
 
-		aCallbacks.Insert(this->m_aGameConfig.GetSymbol("&s_GameEventManager"), [this](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), [this](const CUtlSymbolLarge &aKey, const ptrdiff_t &nOffset)
 		{
-			m_ppGameEventManager = aAddress.RCast<decltype(this->m_ppGameEventManager)>();
+			m_nEntitySystemOffset = nOffset;
 		});
 
-		this->m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
+
+		m_aGameConfig.GetOffsets().AddListener(&aCallbacks);
 	}
 }
 
-bool Sample::Provider::GameDataStorage::CSource2Server::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::CGameResource::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return this->m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
 }
 
-void Sample::Provider::GameDataStorage::CSource2Server::Reset()
+void Sample::Provider::GameDataStorage::CGameResource::Reset()
 {
-	this->m_ppGameEventManager = nullptr;
+	this->m_nEntitySystemOffset = -1;
 }
 
-CGameEventManager **Sample::Provider::GameDataStorage::CSource2Server::GetGameEventManagerPtr() const
+ptrdiff_t Sample::Provider::GameDataStorage::CGameResource::GetEntitySystemOffset() const
 {
-	return this->m_ppGameEventManager;
+	return this->m_nEntitySystemOffset;
 }
+

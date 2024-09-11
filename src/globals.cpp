@@ -26,13 +26,20 @@
 
 #include <ISmmPlugin.h>
 
+#include <entity2/entitysystem.h>
+#include <igamesystemfactory.h>
 #include <iserver.h>
 #include <tier0/dbg.h>
 #include <tier0/strtools.h>
 
+CEntitySystem *g_pEntitySystem = NULL;
+CGameEntitySystem *g_pGameEntitySystem = NULL;
+CBaseGameSystemFactory **CBaseGameSystemFactory::sm_pFirst = NULL;
+
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pEngineServer, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceService, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pCVar, ICvar, CVAR_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetServerFactory, g_pSource2Server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
@@ -41,23 +48,53 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 	return true;
 }
 
+bool RegisterGameEntitySystem(CGameEntitySystem *pGameEntitySystem)
+{
+	g_pEntitySystem = reinterpret_cast<CEntitySystem *>(pGameEntitySystem);
+	g_pGameEntitySystem = pGameEntitySystem;
+
+	return true;
+}
+
+bool UnregisterGameEntitySystem()
+{
+	g_pEntitySystem = NULL;
+	g_pGameEntitySystem = NULL;
+
+	return true;
+}
+
+bool RegisterFirstGameSystem(CBaseGameSystemFactory **ppFirstGameSystem)
+{
+	CBaseGameSystemFactory::sm_pFirst = ppFirstGameSystem;
+
+	return true;
+}
+
+bool UnregisterFirstGameSystem()
+{
+	CBaseGameSystemFactory::sm_pFirst = NULL;
+
+	return true;
+}
+
 void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
 {
-	char sPointer[22];
+	GLOBALS_APPEND_VARIABLE(g_pEngineServer);
+	GLOBALS_APPEND_VARIABLE(g_pGameResourceServiceServer);
+	GLOBALS_APPEND_VARIABLE(g_pCVar);
+	GLOBALS_APPEND_VARIABLE(g_pFullFileSystem);
+	GLOBALS_APPEND_VARIABLE(g_pSource2Server);
+	GLOBALS_APPEND_VARIABLE(g_pNetworkServerService);
 
-#define GLOBALS_APPEND_VARIABLE_LOCAL(var)\
-	{\
-		V_snprintf(sPointer, sizeof(sPointer), "%p", var);\
-		aConcat.AppendToBuffer(sOutput, #var, sPointer);\
-	}
+	DumpRegisterGlobals(aConcat, sOutput);
+}
 
-	GLOBALS_APPEND_VARIABLE_LOCAL(g_pEngineServer);
-	GLOBALS_APPEND_VARIABLE_LOCAL(g_pCVar);
-	GLOBALS_APPEND_VARIABLE_LOCAL(g_pFullFileSystem);
-	GLOBALS_APPEND_VARIABLE_LOCAL(g_pSource2Server);
-	GLOBALS_APPEND_VARIABLE_LOCAL(g_pNetworkServerService);
-
-#undef GLOBALS_APPEND_VARIABLE_LOCAL
+void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
+{
+	GLOBALS_APPEND_VARIABLE(g_pEntitySystem);
+	GLOBALS_APPEND_VARIABLE(g_pGameEntitySystem);
+	GLOBALS_APPEND_VARIABLE(CBaseGameSystemFactory::sm_pFirst);
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)
@@ -67,6 +104,20 @@ bool DestoryGlobals(char *error, size_t maxlen)
 	g_pFullFileSystem = NULL;
 	g_pSource2Server = NULL;
 	g_pNetworkServerService = NULL;
+
+	if(!UnregisterGameEntitySystem())
+	{
+		strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+
+		return false;
+	}
+
+	if(!UnregisterFirstGameSystem())
+	{
+		strncpy(error, "Failed to unregister a first game system", maxlen);
+
+		return false;
+	}
 
 	return true;
 }
@@ -89,7 +140,10 @@ CGlobalVars *GetGameGlobals()
 
 CGameEntitySystem *GameEntitySystem()
 {
-	AssertMsgAlways(false, "Not implemented");
+	return g_pGameEntitySystem;
+}
 
-	return NULL;
+CEntityInstance* CEntityHandle::Get() const
+{
+	return GameEntitySystem()->GetEntityInstance( *this );
 }
