@@ -70,6 +70,8 @@ struct ConcatLineString : ConcatLineStringBase
 {
 	using Base = ConcatLineStringBase;
 
+	ConcatLineString(const Base &aInit);
+
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, bool bValue) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, int iValue) const;

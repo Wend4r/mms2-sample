@@ -22,6 +22,11 @@
 
 #include <concat.hpp>
 
+ConcatLineString::ConcatLineString(const Base &aInit)
+ :  Base(aInit)
+{
+}
+
 const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey) const
 {
 	const auto vecConcat = Base::GetKeyValueConcat(pszKey);

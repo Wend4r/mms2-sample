@@ -38,18 +38,22 @@ SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
 
 const ConcatLineString s_aEmbedConcat =
 {
-	"\t", // Start message.
-	": ", // Padding of key & value.
-	"\n", // End.
-	"\n\t", // End and next line.
+	{
+		"\t", // Start message.
+		": ", // Padding of key & value.
+		"\n", // End.
+		"\n\t", // End and next line.
+	}
 };
 
 const ConcatLineString s_aEmbed2Concat =
 {
-	"\t\t",
-	": ",
-	"\n",
-	"\n\t\t",
+	{
+		"\t\t",
+		": ",
+		"\n",
+		"\n\t\t",
+	}
 };
 
 PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
