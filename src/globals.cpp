@@ -35,6 +35,7 @@
 CEntitySystem *g_pEntitySystem = NULL;
 CGameEntitySystem *g_pGameEntitySystem = NULL;
 CBaseGameSystemFactory **CBaseGameSystemFactory::sm_pFirst = NULL;
+IGameEventManager2 *g_pGameEventManager = NULL;
 
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
@@ -78,6 +79,20 @@ bool UnregisterFirstGameSystem()
 	return true;
 }
 
+bool RegisterGameEventManager(CGameEventManager *pGameEventManager)
+{
+	g_pGameEventManager = reinterpret_cast<IGameEventManager2 *>(pGameEventManager);
+
+	return true;
+}
+
+bool UnregisterGameEventManager()
+{
+	g_pGameEventManager = NULL;
+
+	return true;
+}
+
 void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
 {
 	GLOBALS_APPEND_VARIABLE(g_pEngineServer);
@@ -95,6 +110,7 @@ void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput
 	GLOBALS_APPEND_VARIABLE(g_pEntitySystem);
 	GLOBALS_APPEND_VARIABLE(g_pGameEntitySystem);
 	GLOBALS_APPEND_VARIABLE(CBaseGameSystemFactory::sm_pFirst);
+	GLOBALS_APPEND_VARIABLE(g_pGameEventManager);
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)
@@ -115,6 +131,13 @@ bool DestoryGlobals(char *error, size_t maxlen)
 	if(!UnregisterFirstGameSystem())
 	{
 		strncpy(error, "Failed to unregister a first game system", maxlen);
+
+		return false;
+	}
+
+	if(!UnregisterFirstGameSystem())
+	{
+		strncpy(error, "Failed to unregister a game event manager", maxlen);
 
 		return false;
 	}

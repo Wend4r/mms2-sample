@@ -63,6 +63,7 @@ include(cmake/logger.cmake)
 set(SOURCE_FILES
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/gameresource.cpp
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/gamesystem.cpp
+	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/source2server.cpp
 	${SOURCE_SAMPLE_DIR}/provider.cpp
 	${SOURCE_DIR}/concat.cpp
 	${SOURCE_DIR}/globals.cpp

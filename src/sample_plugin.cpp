@@ -717,6 +717,55 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 	}
 }
 
+void SamplePlugin::FireGameEvent(IGameEvent *event)
+{
+	KeyValues3 *pEventDataKeys = event->GetDataKeys();
+
+	if(!pEventDataKeys)
+	{
+		WarningFormat("Data keys is empty at \"%s\" event", event->GetName());
+
+		return;
+	}
+
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		int iMemberCount = pEventDataKeys->GetMemberCount();
+
+		if(!iMemberCount)
+		{
+			WarningFormat("No members at \"%s\" event", event->GetName());
+
+			return;
+		}
+
+		{
+			auto aDetails = CreateDetailsScope();
+
+			aDetails.PushFormat("\"%s\":", event->GetName());
+			aDetails.Push("{");
+
+			for(KV3MemberId_t id = 0; id < iMemberCount; id++)
+			{
+				const char *pEventMemberName = pEventDataKeys->GetMemberName(id);
+
+				KeyValues3 *pEventMember = pEventDataKeys->GetMember(id);
+
+				CBufferStringGrowable<128> sEventMember;
+
+				pEventMember->ToString(sEventMember, KV3_TO_STRING_DONT_CLEAR_BUFF);
+				aDetails.PushFormat("\t\"%s\":\t%s", pEventMemberName, sEventMember.Get());
+			}
+
+			aDetails.Push("}");
+			aDetails.Send([this](const CUtlString &sMessage)
+			{
+				Detailed(sMessage);
+			});
+		}
+	}
+}
+
 bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
@@ -882,6 +931,63 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	return true;
 }
 
+bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
+{
+	CGameEventManager **ppGameEventManager = GetGameDataStorage().GetSource2Server().GetGameEventManagerPtr();
+
+	if(!ppGameEventManager)
+	{
+		strncpy(error, "Failed to get a game event manager", maxlen);
+
+		return false;
+	}
+
+	if(!RegisterGameEventManager(*ppGameEventManager))
+	{
+		strncpy(error, "Failed to register a game event manager", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
+{
+	if(!UnregisterGameEventManager())
+	{
+		strncpy(error, "Failed to register a game event manager", maxlen);
+
+		return false;
+	}
+
+	return true;
+}
+
+
+bool SamplePlugin::HookEvents(char *error, size_t maxlen)
+{
+	const char *pszEventName = "player_death";
+
+	static const char *pszErrorFormat = "Failed to hook \"%s\" event";
+
+	if(g_pGameEventManager->AddListener(this, pszEventName, true) != -1)
+	{
+		snprintf(error, maxlen, pszErrorFormat, pszEventName);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnhookEvents(char *error, size_t maxlen)
+{
+	g_pGameEventManager->RemoveListener(this);
+
+	return true;
+}
+
 void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
@@ -989,10 +1095,22 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
+	// Initialize game globals.
+	// Hook the evetns.
 	{
 		char sMessage[256];
 
 		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		{
+			WarningFormat("%s\n", sMessage);
+		}
+
+		if(!RegisterSource2Server(sMessage, sizeof(sMessage)))
+		{
+			WarningFormat("%s\n", sMessage);
+		}
+
+		if(!HookEvents(sMessage, sizeof(sMessage)))
 		{
 			WarningFormat("%s\n", sMessage);
 		}

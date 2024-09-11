@@ -29,6 +29,7 @@
 
 #	include <ISmmPlugin.h>
 
+#	include <igameevents.h>
 #	include <igamesystem.h>
 #	include <igamesystemfactory.h>
 #	include <iloopmode.h>
@@ -42,7 +43,7 @@
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define SAMPLE_BASE_PATHID "GAME"
 
-class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public CBaseGameSystem, 
+class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public CBaseGameSystem, public IGameEventListener2, 
                            public Sample::Provider, public Logger
 {
 public:
@@ -101,24 +102,35 @@ public: // CBaseGameSystem
 	GS_EVENT(SaveGame);
 	GS_EVENT(RestoreGame);
 
+public: // IGameEventListener2
+	void FireGameEvent(IGameEvent *event) override;
+
 public: // Utils.
 	bool InitProvider(char *error, size_t maxlen);
 	bool LoadProvider(char *error, size_t maxlen);
 	bool UnloadProvider(char *error, size_t maxlen);
 
-public:
+public: // Game Resource.
 	bool RegisterGameResource(char *error, size_t maxlen);
 	bool UnregisterGameResource(char *error, size_t maxlen);
 
-public:
+public: // Game Factory.
 	bool RegisterGameFactory(char *error, size_t maxlen);
 	bool UnregisterGameFactory(char *error, size_t maxlen);
+
+public: // Source 2 Server.
+	bool RegisterSource2Server(char *error, size_t maxlen);
+	bool UnregisterSource2Server(char *error, size_t maxlen);
+
+public: // Event actions.
+	bool HookEvents(char *error, size_t maxlen);
+	bool UnhookEvents(char *error, size_t maxlen);
 
 private: // Commands.
 	CON_COMMAND_MEMBER_F(SamplePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 private: // ConVars.
-	ConVar<bool> m_aEnableFrameDetailsConVar;
+	ConVar<bool> m_aEnableFrameDetailsConVar; // See the constructor.
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);

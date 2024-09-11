@@ -37,8 +37,10 @@
 #	define SAMPLE_GAMECONFIG_FOLDER_DIR "gamedata"
 #	define SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
 #	define SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
+#	define SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
 
 class CBaseGameSystemFactory;
+class CGameEventManager;
 namespace Sample
 {
 	class Provider : public IGameData
@@ -70,6 +72,7 @@ namespace Sample
 		protected:
 			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 
 		public:
 			class CGameResource
@@ -90,7 +93,7 @@ namespace Sample
 
 			private: // Offsets.
 				ptrdiff_t m_nEntitySystemOffset = -1;
-			}; // CGameSystem
+			}; // CGameResource
 
 			class CGameSystem
 			{
@@ -108,16 +111,38 @@ namespace Sample
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
 				GameData::Config m_aGameConfig;
 
-			private: // Signatures.
+			private: // Addresses.
 				CBaseGameSystemFactory **m_ppFirstGameSystem = nullptr;
 			}; // CGameSystem
 
+			class CSource2Server
+			{
+			public:
+				CSource2Server();
+
+			public:
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				void Reset();
+
+			public:
+				CGameEventManager **GetGameEventManagerPtr() const;
+
+			private:
+				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
+				GameData::Config m_aGameConfig;
+
+			private: // Addresses.
+				CGameEventManager **m_ppGameEventManager = nullptr;
+			}; // CSource2Server
+
 			const CGameResource &GetGameResource() const;
 			const CGameSystem &GetGameSystem() const;
+			const CSource2Server &GetSource2Server() const;
 
 		private:
 			CGameResource m_aGameResource;
 			CGameSystem m_aGameSystem;
+			CSource2Server m_aSource2Server;
 		}; // GameDataStorage
 
 		const GameDataStorage &GetGameDataStorage() const;

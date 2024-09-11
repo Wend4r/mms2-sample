@@ -43,6 +43,8 @@ class CGlobalVars;
 class CEntitySystem;
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
+class CGameEventManager;
+class IGameEventManager2;
 
 #	include <interfaces/interfaces.h>
 #	include <igamesystemfactory.h>
@@ -51,6 +53,7 @@ class CBaseGameSystemFactory;
 
 extern CEntitySystem *g_pEntitySystem;
 extern CGameEntitySystem *g_pGameEntitySystem;
+extern IGameEventManager2 *g_pGameEventManager;
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
 
@@ -59,6 +62,9 @@ extern bool UnregisterGameEntitySystem();
 
 extern bool RegisterFirstGameSystem(CBaseGameSystemFactory **ppFirstGameSystem);
 extern bool UnregisterFirstGameSystem();
+
+extern bool RegisterGameEventManager(CGameEventManager *pGameEventManager);
+extern bool UnregisterGameEventManager();
 
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
