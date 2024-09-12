@@ -845,7 +845,10 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 
 	if(!bResult)
 	{
-		strncpy(error, "Failed to initialize provider. See warnings", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to initialize provider. See warnings", maxlen);
+		}
 	}
 
 	return bResult;
@@ -879,7 +882,10 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 
 	if(!bResult)
 	{
-		strncpy(error, "Failed to load provider. See warnings", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to load provider. See warnings", maxlen);
+		}
 	}
 
 	return bResult;
@@ -913,7 +919,10 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 
 	if(!bResult)
 	{
-		strncpy(error, "Failed to unload provider. See warnings", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unload provider. See warnings", maxlen);
+		}
 	}
 
 	return bResult;
@@ -925,12 +934,18 @@ bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 
 	if(!pGameEntitySystem)
 	{
-		strncpy(error, "Failed to get a game entity system", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a game entity system", maxlen);
+		}
 	}
 
 	if(!RegisterGameEntitySystem(*pGameEntitySystem))
 	{
-		strncpy(error, "Failed to register a (game) entity system", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to register a (game) entity system", maxlen);
+		}
 
 		return false;
 	}
@@ -942,7 +957,10 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEntitySystem())
 	{
-		strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+		}
 
 		return false;
 	}
@@ -954,7 +972,10 @@ bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
 	if(!RegisterFirstGameSystem(GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer()))
 	{
-		strncpy(error, "Failed to register a first game factory", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to register a first game factory", maxlen);
+		}
 
 		return false;
 	}
@@ -974,7 +995,10 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 
 	if(!UnregisterFirstGameSystem())
 	{
-		strncpy(error, "Failed to unregister a first game factory", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a first game factory", maxlen);
+		}
 
 		return false;
 	}
@@ -988,14 +1012,20 @@ bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
 
 	if(!ppGameEventManager)
 	{
-		strncpy(error, "Failed to get a game event manager", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a game event manager", maxlen);
+		}
 
 		return false;
 	}
 
 	if(!RegisterGameEventManager(*ppGameEventManager))
 	{
-		strncpy(error, "Failed to register a game event manager", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to register a game event manager", maxlen);
+		}
 
 		return false;
 	}
@@ -1007,7 +1037,10 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEventManager())
 	{
-		strncpy(error, "Failed to register a game event manager", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to register a game event manager", maxlen);
+		}
 
 		return false;
 	}

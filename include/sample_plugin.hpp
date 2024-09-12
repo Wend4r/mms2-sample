@@ -118,21 +118,21 @@ public: // IGameEventListener2
 	void FireGameEvent(IGameEvent *event) override;
 
 public: // Utils.
-	bool InitProvider(char *error, size_t maxlen);
-	bool LoadProvider(char *error, size_t maxlen);
-	bool UnloadProvider(char *error, size_t maxlen);
+	bool InitProvider(char *error = nullptr, size_t maxlen = 0);
+	bool LoadProvider(char *error = nullptr, size_t maxlen = 0);
+	bool UnloadProvider(char *error = nullptr, size_t maxlen = 0);
 
 public: // Game Resource.
-	bool RegisterGameResource(char *error, size_t maxlen);
-	bool UnregisterGameResource(char *error, size_t maxlen);
+	bool RegisterGameResource(char *error = nullptr, size_t maxlen = 0);
+	bool UnregisterGameResource(char *error = nullptr, size_t maxlen = 0);
 
 public: // Game Factory.
-	bool RegisterGameFactory(char *error, size_t maxlen);
-	bool UnregisterGameFactory(char *error, size_t maxlen);
+	bool RegisterGameFactory(char *error = nullptr, size_t maxlen = 0);
+	bool UnregisterGameFactory(char *error = nullptr, size_t maxlen = 0);
 
 public: // Source 2 Server.
-	bool RegisterSource2Server(char *error, size_t maxlen);
-	bool UnregisterSource2Server(char *error, size_t maxlen);
+	bool RegisterSource2Server(char *error = nullptr, size_t maxlen = 0);
+	bool UnregisterSource2Server(char *error = nullptr, size_t maxlen = 0);
 
 public: // Event actions.
 	bool ParseGameEvents();

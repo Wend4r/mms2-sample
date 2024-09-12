@@ -123,21 +123,30 @@ bool DestoryGlobals(char *error, size_t maxlen)
 
 	if(!UnregisterGameEntitySystem())
 	{
-		strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a (game) entity system", maxlen);
+		}
 
 		return false;
 	}
 
 	if(!UnregisterFirstGameSystem())
 	{
-		strncpy(error, "Failed to unregister a first game system", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a first game system", maxlen);
+		}
 
 		return false;
 	}
 
 	if(!UnregisterFirstGameSystem())
 	{
-		strncpy(error, "Failed to unregister a game event manager", maxlen);
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a game event manager", maxlen);
+		}
 
 		return false;
 	}
