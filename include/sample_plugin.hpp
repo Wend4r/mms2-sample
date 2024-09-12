@@ -44,6 +44,7 @@
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
+#	define SAMPLE_GAME_EVENTS_FILES "resource/*.gameevents"
 #	define SAMPLE_BASE_PATHID "GAME"
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
@@ -134,14 +135,19 @@ public: // Source 2 Server.
 	bool UnregisterSource2Server(char *error, size_t maxlen);
 
 public: // Event actions.
-	bool HookEvents(char *error, size_t maxlen);
-	bool UnhookEvents(char *error, size_t maxlen);
+	bool ParseGameEvents();
+	bool ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &vecMessages); // Parse the structure of events.
+	bool ClearGameEvents();
+
+	bool HookGameEvents();
+	bool UnhookGameEvents();
 
 private: // Commands.
 	CON_COMMAND_MEMBER_F(SamplePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
-private: // ConVars.
-	ConVar<bool> m_aEnableFrameDetailsConVar; // See the constructor.
+private: // ConVars. See the constructor
+	ConVar<bool> m_aEnableFrameDetailsConVar;
+	ConVar<bool> m_aEnableGameEventsDetaillsConVar;
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
@@ -164,6 +170,7 @@ public: // Handlers.
 
 protected: // Fields.
 	IGameSystemFactory *m_pFactory = NULL;
+	CUtlVector<CUtlString> m_vecGameEvents;
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;

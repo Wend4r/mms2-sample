@@ -24,8 +24,11 @@
 
 #include <stdint.h>
 
+#include <any_config.hpp>
+
 #include <sourcehook/sourcehook.h>
 
+#include <filesystem.h>
 #include <serversideclient.h>
 #include <tier0/commonmacros.h>
 
@@ -63,7 +66,8 @@ SamplePlugin::SamplePlugin()
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
     }, 0, LV_DEFAULT, SAMPLE_LOGGINING_COLOR),
-    m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable frame detail messages", false, true, false, true, true)
+    m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
+	m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true)
 {
 }
 
@@ -103,6 +107,8 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
+	Assert(ParseGameEvents());
+
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	if(late)
@@ -141,17 +147,24 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
+	Assert(UnhookGameEvents());
+
 	if(!UnloadProvider(error, maxlen))
 	{
 		return false;
 	}
 
-	if(!UnregisterGameResource(error, maxlen))
+	if(!UnregisterSource2Server(error, maxlen))
 	{
 		return false;
 	}
 
 	if(!UnregisterGameFactory(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!UnregisterGameResource(error, maxlen))
 	{
 		return false;
 	}
@@ -752,6 +765,11 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 
 void SamplePlugin::FireGameEvent(IGameEvent *event)
 {
+	if(!m_aEnableGameEventsDetaillsConVar.GetValue())
+	{
+		return;
+	}
+
 	KeyValues3 *pEventDataKeys = event->GetDataKeys();
 
 	if(!pEventDataKeys)
@@ -997,24 +1015,137 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-
-bool SamplePlugin::HookEvents(char *error, size_t maxlen)
+bool SamplePlugin::ParseGameEvents()
 {
-	const char *pszEventName = "player_death";
+	const char *pszPathID = SAMPLE_BASE_PATHID;
 
-	static const char *pszErrorFormat = "Failed to hook \"%s\" event";
+	CUtlVector<CUtlString> vecGameEventFiles;
 
-	if(g_pGameEventManager->AddListener(this, pszEventName, true) != -1)
+	CUtlVector<CUtlString> vecSubmessages;
+
+	CUtlString sMessage;
+
+	auto aWarnings = CreateWarningsScope();
+
+	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+
+	CBufferStringGrowable<1024> sWarningMessage;
+
+	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, SAMPLE_GAME_EVENTS_FILES, pszPathID);
+
+	for(const auto &sFile : vecGameEventFiles)
 	{
-		snprintf(error, maxlen, pszErrorFormat, pszEventName);
+		const char *pszFilename = sFile.Get();
 
-		return false;
+		AnyConfig::Anyone aGameEventConfig;
+
+		aLoadPresets.m_pszFilename = pszFilename;
+
+		if(!aGameEventConfig.Load(aLoadPresets))
+		{
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+
+			continue;
+		}
+
+		if(!ParseGameEvents(aGameEventConfig.Get(), vecSubmessages))
+		{
+			aWarnings.PushFormat("\"%s\":", pszFilename);
+
+			for(const auto &sSubmessage : vecSubmessages)
+			{
+				aWarnings.PushFormat("\t%s", sSubmessage.Get());
+			}
+
+			continue;
+		}
+
+		// ...
+	}
+
+	if(aWarnings.Count())
+	{
+		aWarnings.Send([this](const CUtlString &sMessage)
+		{
+			Warning(sMessage);
+		});
 	}
 
 	return true;
 }
 
-bool SamplePlugin::UnhookEvents(char *error, size_t maxlen)
+bool SamplePlugin::ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &vecMessages)
+{
+	int iMemberCount = pEvents->GetMemberCount();
+
+	if(!iMemberCount)
+	{
+		vecMessages.AddToTail("No members");
+
+		return false;
+	}
+
+	CUtlString sMessage;
+
+	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
+	{
+		const char *pszEvent = pEvents->GetMemberName(n);
+
+		if(!pszEvent)
+		{
+			sMessage.Format("No member name at #%d", n);
+			vecMessages.AddToTail(sMessage);
+
+			continue;
+		}
+
+		m_vecGameEvents.AddToTail(pszEvent);
+	}
+
+	return iMemberCount;
+}
+
+bool SamplePlugin::ClearGameEvents()
+{
+	m_vecGameEvents.Purge();
+
+	return true;
+}
+
+bool SamplePlugin::HookGameEvents()
+{
+	auto aWarnings = CreateWarningsScope();
+
+	static const char *pszWarningFormat = "Failed to hook \"%s\" event";
+
+	for(const auto &sEvent : m_vecGameEvents)
+	{
+		const char *pszEvent = sEvent.Get();
+
+		if(g_pGameEventManager->AddListener(this, pszEvent, true) == -1)
+		{
+			aWarnings.PushFormat(pszWarningFormat, pszEvent);
+
+			continue;
+		}
+
+#ifdef DEBUG
+		DetailedFormat("Hooked \"%s\" event\n", pszEvent);
+#endif
+	}
+
+	if(aWarnings.Count())
+	{
+		aWarnings.Send([this](const CUtlString &sMessage)
+		{
+			Warning(sMessage);
+		});
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnhookGameEvents()
 {
 	g_pGameEventManager->RemoveListener(this);
 
@@ -1143,10 +1274,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 			WarningFormat("%s\n", sMessage);
 		}
 
-		if(!HookEvents(sMessage, sizeof(sMessage)))
-		{
-			WarningFormat("%s\n", sMessage);
-		}
+		Assert(HookGameEvents());
 	}
 
 	if(IsChannelEnabled(LS_DETAILED))
