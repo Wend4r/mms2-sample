@@ -27,11 +27,13 @@
 #include <ISmmPlugin.h>
 
 #include <entity2/entitysystem.h>
+#include <igameeventsystem.h>
 #include <igamesystemfactory.h>
 #include <iserver.h>
 #include <tier0/dbg.h>
 #include <tier0/strtools.h>
 
+IGameEventSystem *g_pGameEventSystem = NULL;
 CEntitySystem *g_pEntitySystem = NULL;
 CGameEntitySystem *g_pGameEntitySystem = NULL;
 CBaseGameSystemFactory **CBaseGameSystemFactory::sm_pFirst = NULL;
@@ -41,6 +43,8 @@ bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pEngineServer, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceService, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameEventSystem, IGameEventSystem, GAMEEVENTSYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pNetworkMessages, INetworkMessages, NETWORKMESSAGES_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pCVar, ICvar, CVAR_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetServerFactory, g_pSource2Server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
@@ -97,6 +101,8 @@ void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
 {
 	GLOBALS_APPEND_VARIABLE(g_pEngineServer);
 	GLOBALS_APPEND_VARIABLE(g_pGameResourceServiceServer);
+	GLOBALS_APPEND_VARIABLE(g_pGameEventSystem);
+	GLOBALS_APPEND_VARIABLE(g_pNetworkMessages);
 	GLOBALS_APPEND_VARIABLE(g_pCVar);
 	GLOBALS_APPEND_VARIABLE(g_pFullFileSystem);
 	GLOBALS_APPEND_VARIABLE(g_pSource2Server);
@@ -116,6 +122,9 @@ void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput
 bool DestoryGlobals(char *error, size_t maxlen)
 {
 	g_pEngineServer = NULL;
+	g_pGameResourceServiceServer = NULL;
+	g_pGameEventSystem = NULL;
+	g_pNetworkMessages = NULL;
 	g_pCVar = NULL;
 	g_pFullFileSystem = NULL;
 	g_pSource2Server = NULL;

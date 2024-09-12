@@ -25,6 +25,7 @@
 #	pragma once
 
 #	include <isample.hpp>
+#	include <sample/chat_command_system.hpp>
 #	include <sample/provider.hpp>
 #	include <concat.hpp>
 
@@ -32,29 +33,38 @@
 
 #	include <ISmmPlugin.h>
 
+#	include <bitvec.h>
+#	include <const.h>
 #	include <igameevents.h>
 #	include <igamesystem.h>
 #	include <igamesystemfactory.h>
 #	include <iloopmode.h>
 #	include <iserver.h>
+#	include <playerslot.h>
 #	include <tier0/bufferstring.h>
 #	include <tier0/strtools.h>
 #	include <tier1/convar.h>
 #	include <tier1/utlvector.h>
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
+
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define SAMPLE_GAME_EVENTS_FILES "resource/*.gameevents"
 #	define SAMPLE_BASE_PATHID "GAME"
 
+#	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
+
+class CBasePlayerController;
+class INetworkMessageInternal;
+
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                           public Sample::Provider, public Logger
+                           public Sample::ChatCommandSystem, public Sample::Provider, virtual public Logger
 {
 public:
 	SamplePlugin();
 
 public: // ISmmPlugin
-	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late) override;
+	bool Load(PluginId id, ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0, bool late = true) override;
 	bool Unload(char *error, size_t maxlen) override;
 	bool Pause(char *error, size_t maxlen) override;
 	bool Unpause(char *error, size_t maxlen) override;
@@ -134,6 +144,10 @@ public: // Source 2 Server.
 	bool RegisterSource2Server(char *error = nullptr, size_t maxlen = 0);
 	bool UnregisterSource2Server(char *error = nullptr, size_t maxlen = 0);
 
+public: // Network Messages.
+	bool RegisterNetMessages(char *error = nullptr, size_t maxlen = 0);
+	bool UnregisterNetMessages(char *error = nullptr, size_t maxlen = 0);
+
 public: // Event actions.
 	bool ParseGameEvents();
 	bool ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &vecMessages); // Parse the structure of events.
@@ -151,6 +165,7 @@ private: // ConVars. See the constructor
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
+	void OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs);
 	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
@@ -163,13 +178,20 @@ public: // Dump ones.
 	void DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient);
 	void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
 
+public: // Utils.
+	void SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1 = "", const char *pszParam2 = "", const char *pszParam3 = "", const char *pszParam4 = "");
+	void SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...);
+
 public: // Handlers.
 	void OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession);
+	void OnChatCommandExample(CPlayerSlot nSlot, CUtlVector<CUtlString> &vecArgs);
 	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	void OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason);
 
 protected: // Fields.
 	IGameSystemFactory *m_pFactory = NULL;
+	INetworkMessageInternal *m_pSayText2Message = NULL;
+	INetworkMessageInternal *m_pTextMsgMessage = NULL;
 	CUtlVector<CUtlString> m_vecGameEvents;
 }; // SamplePlugin
 

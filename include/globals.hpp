@@ -42,6 +42,7 @@ namespace SourceMM
 }; // SourceMM
 
 class CGlobalVars;
+class IGameEventSystem;
 class CEntitySystem;
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
@@ -53,11 +54,12 @@ class IGameEventManager2;
 
 #	define GLOBALS_APPEND_VARIABLE(var) aConcat.AppendPointerToBuffer(sOutput, #var, var);
 
+extern IGameEventSystem *g_pGameEventSystem;
 extern CEntitySystem *g_pEntitySystem;
 extern CGameEntitySystem *g_pGameEntitySystem;
 extern IGameEventManager2 *g_pGameEventManager;
 
-extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen);
+extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0);
 
 extern bool RegisterGameEntitySystem(CGameEntitySystem *pGameEntitySystem);
 extern bool UnregisterGameEntitySystem();
@@ -70,7 +72,7 @@ extern bool UnregisterGameEventManager();
 
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
-extern bool DestoryGlobals(char *error, size_t maxlen);
+extern bool DestoryGlobals(char *error = nullptr, size_t maxlen = 0);
 
 extern CGlobalVars *GetGameGlobals();
 // CGameEntitySystem *GameEntitySystem(); // Declared in <entity2/entitysystem.h>

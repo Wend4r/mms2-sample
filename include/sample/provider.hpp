@@ -55,7 +55,7 @@ namespace Sample
 		bool Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 		bool Destroy(GameData::CBufferStringVector &vecMessages);
 
-	public:
+	protected:
 		CUtlSymbolLarge GetSymbol(const char *pszText);
 		CUtlSymbolLarge FindSymbol(const char *pszText) const;
 

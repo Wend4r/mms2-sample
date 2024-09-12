@@ -24,14 +24,24 @@
 
 #include <stdint.h>
 
+#include <string>
+
 #include <any_config.hpp>
 
 #include <sourcehook/sourcehook.h>
 
 #include <filesystem.h>
+#include <igameeventsystem.h>
+#include <inetchannel.h>
+#include <networksystem/inetworkmessages.h>
+#include <networksystem/inetworkserializer.h>
+#include <recipientfilter.h>
 #include <serversideclient.h>
+#include <shareddefs.h>
 #include <tier0/commonmacros.h>
+#include <usermessages.pb.h>
 
+SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
@@ -67,7 +77,7 @@ SamplePlugin::SamplePlugin()
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
     }, 0, LV_DEFAULT, SAMPLE_LOGGINING_COLOR),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
-	m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true)
+    m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true)
 {
 }
 
@@ -109,7 +119,19 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	Assert(ParseGameEvents());
 
+	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &SamplePlugin::OnDispatchConCommandHook), false);
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
+
+	// Register chat commands.
+	Sample::ChatCommandSystem::Register("sample", [this](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
+	{
+		CSingleRecipientFilter aFilter(aSlot);
+
+		for(const auto &sArgument : vecArguments)
+		{
+			SendTextMessage(&aFilter, HUD_PRINTTALK, 2, "Your argument \"%s1\"", sArgument.Get());
+		}
+	});
 
 	if(late)
 	{
@@ -150,6 +172,11 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 	Assert(UnhookGameEvents());
 
 	if(!UnloadProvider(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!UnregisterNetMessages(error, maxlen))
 	{
 		return false;
 	}
@@ -355,10 +382,20 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat2.AppendToBuffer(sBuffer, "Event loop");
-			DumpEngineLoopState(aConcat, sBuffer, *msg.m_pState);
-			aConcat2.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
+			aConcat.AppendToBuffer(sBuffer, "Event loop");
+			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
+			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
 			Detailed(sBuffer);
+		}
+	}
+
+	// Initialize a game resource.
+	{
+		char sMessage[256];
+
+		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		{
+			WarningFormat("%s\n", sMessage);
 		}
 	}
 }
@@ -940,6 +977,8 @@ bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 		}
 	}
 
+	DetailedFormat("RegisterGameEntitySystem\n");
+
 	if(!RegisterGameEntitySystem(*pGameEntitySystem))
 	{
 		if(error && maxlen)
@@ -1044,6 +1083,55 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 
 		return false;
 	}
+
+	return true;
+}
+
+bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
+{
+	struct
+	{
+		const char *pszName;
+		INetworkMessageInternal **ppInternal;
+	} aMessageInitializers[] =
+	{
+		{
+			"CUserMessageSayText2",
+			&m_pSayText2Message,
+		},
+		{
+			"CUserMessageTextMsg",
+			&m_pTextMsgMessage,
+		},
+	};
+
+	for(size_t n = 0, nSize = ARRAYSIZE(aMessageInitializers); n < nSize; n++)
+	{
+		auto &aMessageInitializer = aMessageInitializers[n];
+
+		const char *pszMessageName = aMessageInitializer.pszName;
+
+		INetworkMessageInternal *pMessage = g_pNetworkMessages->FindNetworkMessagePartial(pszMessageName);
+
+		if(!pMessage)
+		{
+			if(error && maxlen)
+			{
+				snprintf(error, maxlen, "Failed to get \"%s\" message", pszMessageName);
+			}
+
+			return false;
+		}
+
+		*aMessageInitializer.ppInternal = pMessage;
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnregisterNetMessages(char *error, size_t maxlen)
+{
+	m_pSayText2Message = NULL;
 
 	return true;
 }
@@ -1195,6 +1283,97 @@ void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const
 	}
 }
 
+void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
+{
+	if(IsChannelEnabled(LV_DETAILED))
+	{
+		DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
+	}
+
+	auto aPlayerSlot = aContext.GetPlayerSlot();
+
+	const char *pszArg0 = aArgs.Arg(0);
+
+	static const char szSayCommand[] = "say";
+
+	size_t nSayNullTerminated = sizeof(szSayCommand) - 1;
+
+	if(!V_strncmp(pszArg0, (const char *)szSayCommand, nSayNullTerminated))
+	{
+		if(!pszArg0[nSayNullTerminated] || !V_strcmp(&pszArg0[nSayNullTerminated], "_team"))
+		{
+			const char *pszArg1 = aArgs.Arg(1);
+
+			// Skip spaces.
+			while(*pszArg1 == ' ')
+			{
+				pszArg1++;
+			}
+
+			bool bIsSilent = *pszArg1 == Sample::ChatCommandSystem::GetSilentTrigger();
+
+			if(bIsSilent || *pszArg1 == Sample::ChatCommandSystem::GetPublicTrigger())
+			{
+				pszArg1++; // Skip a command character.
+
+				// Print a chat message before.
+				if(!bIsSilent && g_pCVar)
+				{
+					SH_CALL(g_pCVar, &ICvar::DispatchConCommand)(hCommand, aContext, aArgs);
+				}
+
+				// Call the handler.
+				{
+					size_t nArg1Length = 0;
+
+					// Get a length to a first space.
+					while(pszArg1[nArg1Length] && pszArg1[nArg1Length] != ' ')
+					{
+						nArg1Length++;
+					}
+
+					CUtlVector<CUtlString> vecArgs;
+
+					V_SplitString(pszArg1, " ", vecArgs);
+
+					for(auto &sArg : vecArgs)
+					{
+						sArg.Trim(' ');
+					}
+
+					if(IsChannelEnabled(LV_DETAILED))
+					{
+						const auto &aConcat = s_aEmbedConcat, 
+						           &aConcat2 = s_aEmbed2Concat;
+
+						CBufferStringGrowable<1024> sBuffer;
+
+						sBuffer.Format("Handle a chat command:\n");
+						aConcat.AppendToBuffer(sBuffer, "Player slot", aPlayerSlot.Get());
+						aConcat.AppendToBuffer(sBuffer, "Is silent", bIsSilent);
+						aConcat.AppendToBuffer(sBuffer, "Arguments");
+
+						for(const auto &sArg : vecArgs)
+						{
+							const char *pszMessageConcat[] = {aConcat2.m_aStartWith, "\"", sArg.Get(), "\"", aConcat2.m_aEnd};
+
+							sBuffer.AppendConcat(ARRAYSIZE(pszMessageConcat), pszMessageConcat, NULL);
+						}
+
+						Detailed(sBuffer);
+					}
+
+					Sample::ChatCommandSystem::Handle(aPlayerSlot, bIsSilent, vecArgs);
+				}
+
+				RETURN_META(MRES_SUPERCEDE);
+			}
+		}
+	}
+
+	RETURN_META(MRES_IGNORED);
+}
+
 void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
 {
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
@@ -1288,26 +1467,123 @@ void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBuffer
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
+void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
+{
+	auto *pSayText2Message = m_pSayText2Message;
+
+	if(IsChannelEnabled(LV_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat;
+
+		CBufferStringGrowable<1024> sBuffer;
+
+		sBuffer.Format("Send chat message (%s):\n", pSayText2Message->GetUnscopedName());
+		aConcat.AppendToBuffer(sBuffer, "Entity index", iEntityIndex);
+		aConcat.AppendToBuffer(sBuffer, "Is chat", bIsChat);
+		aConcat.AppendStringToBuffer(sBuffer, "Chat message", pszChatMessageFormat);
+
+		if(pszParam1 && *pszParam1)
+		{
+			aConcat.AppendStringToBuffer(sBuffer, "Parameter #1", pszParam1);
+		}
+
+		if(pszParam2 && *pszParam2)
+		{
+			aConcat.AppendStringToBuffer(sBuffer, "Parameter #2", pszParam2);
+		}
+
+		if(pszParam3 && *pszParam3)
+		{
+			aConcat.AppendStringToBuffer(sBuffer, "Parameter #3", pszParam3);
+		}
+
+		if(pszParam4 && *pszParam4)
+		{
+			aConcat.AppendStringToBuffer(sBuffer, "Parameter #4", pszParam4);
+		}
+
+		Detailed(sBuffer);
+	}
+
+	auto *pMessage = pSayText2Message->AllocateMessage()->ToPB<CUserMessageSayText2>();
+
+	pMessage->set_entityindex(iEntityIndex);
+	pMessage->set_chat(bIsChat);
+	pMessage->set_messagename(pszChatMessageFormat);
+	pMessage->set_param1(pszParam1);
+	pMessage->set_param2(pszParam2);
+	pMessage->set_param3(pszParam3);
+	pMessage->set_param4(pszParam4);
+
+	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSayText2Message, pMessage, 0);
+
+	delete pMessage;
+}
+
+void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
+{
+	auto *pTextMsg = m_pTextMsgMessage;
+
+	if(IsChannelEnabled(LV_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat;
+
+		CBufferStringGrowable<1024> sBuffer;
+
+		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
+		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
+		aConcat.AppendToBuffer(sBuffer, "Parameter", pszParam);
+		Detailed(sBuffer);
+	}
+
+	auto *pMessage = pTextMsg->AllocateMessage()->ToPB<CUserMessageTextMsg>();
+
+	pMessage->set_dest(iDestination);
+	pMessage->add_param(pszParam);
+	nParamCount--;
+
+	// Parse incoming parameters.
+	if(nParamCount)
+	{
+		va_list aParams;
+
+		va_start(aParams, pszParam);
+
+		for(size_t n = 0; n < nParamCount; n++)
+		{
+			pMessage->add_param(va_arg(aParams, const char *));
+		}
+
+		va_end(aParams);
+	}
+
+	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pTextMsg, pMessage, 0);
+
+	delete pMessage;
+}
+
 void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
 
-	// Initialize game globals.
-	// Hook the evetns.
+	// Initialize & hook game evetns.
+	// Initialize network messages.
 	{
 		char sMessage[256];
 
-		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		if(RegisterSource2Server(sMessage, sizeof(sMessage)))
+		{
+			Assert(HookGameEvents());
+		}
+		else
 		{
 			WarningFormat("%s\n", sMessage);
 		}
 
-		if(!RegisterSource2Server(sMessage, sizeof(sMessage)))
+		if(!RegisterNetMessages(sMessage, sizeof(sMessage)))
 		{
 			WarningFormat("%s\n", sMessage);
 		}
-
-		Assert(HookGameEvents());
 	}
 
 	if(IsChannelEnabled(LS_DETAILED))
