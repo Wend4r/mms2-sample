@@ -24,6 +24,7 @@
 
 #	pragma once
 
+#	include <isample.hpp>
 #	include <sample/provider.hpp>
 #	include <concat.hpp>
 
@@ -45,13 +46,19 @@
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define SAMPLE_BASE_PATHID "GAME"
 
-class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public CBaseGameSystem, public IGameEventListener2, 
+class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
                            public Sample::Provider, public Logger
 {
 public:
 	SamplePlugin();
 
 public: // ISmmPlugin
+	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late) override;
+	bool Unload(char *error, size_t maxlen) override;
+	bool Pause(char *error, size_t maxlen) override;
+	bool Unpause(char *error, size_t maxlen) override;
+	void AllPluginsLoaded() override;
+
 	const char *GetAuthor() override;
 	const char *GetName() override;
 	const char *GetDescription() override;
@@ -62,11 +69,13 @@ public: // ISmmPlugin
 	const char *GetLogTag() override;
 
 public: // IMetamodListener
-	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late) override;
-	bool Unload(char *error, size_t maxlen) override;
-	bool Pause(char *error, size_t maxlen) override;
-	bool Unpause(char *error, size_t maxlen) override;
-	void AllPluginsLoaded() override;
+	void *OnMetamodQuery(const char *iface, int *ret) override;
+
+
+public: // ISample
+	CGameEntitySystem **GetGameEntitySystemPointer() override;
+	CBaseGameSystemFactory **GetFirstGameSystemPointer() override;
+	IGameEventManager2 **GetGameEventManagerPointer() override;
 
 public: // CBaseGameSystem
 	bool Init() override;

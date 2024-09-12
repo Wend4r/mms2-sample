@@ -79,9 +79,9 @@ bool UnregisterFirstGameSystem()
 	return true;
 }
 
-bool RegisterGameEventManager(CGameEventManager *pGameEventManager)
+bool RegisterGameEventManager(IGameEventManager2 *pGameEventManager)
 {
-	g_pGameEventManager = reinterpret_cast<IGameEventManager2 *>(pGameEventManager);
+	g_pGameEventManager = pGameEventManager;
 
 	return true;
 }

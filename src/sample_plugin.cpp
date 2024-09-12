@@ -67,15 +67,6 @@ SamplePlugin::SamplePlugin()
 {
 }
 
-const char *SamplePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
-const char *SamplePlugin::GetName()          { return META_PLUGIN_NAME; }
-const char *SamplePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
-const char *SamplePlugin::GetURL()           { return META_PLUGIN_URL; }
-const char *SamplePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
-const char *SamplePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
-const char *SamplePlugin::GetDate()          { return META_PLUGIN_DATE; }
-const char *SamplePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
-
 bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
@@ -199,6 +190,50 @@ void SamplePlugin::AllPluginsLoaded()
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
 	 * being initialized (for example, cvars added and events registered).
 	 */
+}
+
+const char *SamplePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
+const char *SamplePlugin::GetName()          { return META_PLUGIN_NAME; }
+const char *SamplePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
+const char *SamplePlugin::GetURL()           { return META_PLUGIN_URL; }
+const char *SamplePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
+const char *SamplePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
+const char *SamplePlugin::GetDate()          { return META_PLUGIN_DATE; }
+const char *SamplePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
+
+void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
+{
+	if(!strcmp(iface, SAMPLE_INTERFACE_NAME))
+	{
+		if(ret)
+		{
+			*ret = META_IFACE_OK;
+		}
+
+		return this;
+	}
+
+	if(ret)
+	{
+		*ret = META_IFACE_FAILED;
+	}
+
+	return nullptr;
+}
+
+CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer()
+{
+	return reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
+}
+
+CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer()
+{
+	return GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
+}
+
+IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer()
+{
+	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
 bool SamplePlugin::Init()
@@ -874,7 +909,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 {
-	CGameEntitySystem **pGameEntitySystem = reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
+	CGameEntitySystem **pGameEntitySystem = GetGameEntitySystemPointer();
 
 	if(!pGameEntitySystem)
 	{
@@ -905,7 +940,7 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
-	if(!RegisterFirstGameSystem(GetGameDataStorage().GetGameSystem().GetFirstGameSystem()))
+	if(!RegisterFirstGameSystem(GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer()))
 	{
 		strncpy(error, "Failed to register a first game factory", maxlen);
 
@@ -937,7 +972,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
 {
-	CGameEventManager **ppGameEventManager = GetGameDataStorage().GetSource2Server().GetGameEventManagerPtr();
+	IGameEventManager2 **ppGameEventManager = GetGameEventManagerPointer();
 
 	if(!ppGameEventManager)
 	{

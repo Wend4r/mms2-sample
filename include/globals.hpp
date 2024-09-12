@@ -65,7 +65,7 @@ extern bool UnregisterGameEntitySystem();
 extern bool RegisterFirstGameSystem(CBaseGameSystemFactory **ppFirstGameSystem);
 extern bool UnregisterFirstGameSystem();
 
-extern bool RegisterGameEventManager(CGameEventManager *pGameEventManager);
+extern bool RegisterGameEventManager(IGameEventManager2 *pGameEventManager);
 extern bool UnregisterGameEventManager();
 
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);

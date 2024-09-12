@@ -45,7 +45,7 @@ void Sample::Provider::GameDataStorage::CSource2Server::Reset()
 	m_ppGameEventManager = nullptr;
 }
 
-CGameEventManager **Sample::Provider::GameDataStorage::CSource2Server::GetGameEventManagerPtr() const
+CGameEventManager **Sample::Provider::GameDataStorage::CSource2Server::GetGameEventManagerPointer() const
 {
 	return m_ppGameEventManager;
 }

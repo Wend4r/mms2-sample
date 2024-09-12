@@ -107,7 +107,7 @@ namespace Sample
 				void Reset();
 
 			public:
-				CBaseGameSystemFactory **GetFirstGameSystem() const;
+				CBaseGameSystemFactory **GetFirstGameSystemPointer() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
@@ -127,7 +127,7 @@ namespace Sample
 				void Reset();
 
 			public:
-				CGameEventManager **GetGameEventManagerPtr() const;
+				CGameEventManager **GetGameEventManagerPointer() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
