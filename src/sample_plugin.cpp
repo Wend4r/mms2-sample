@@ -113,17 +113,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		{
 			OnStartupServer(pNetServer, pNetServer->m_GameConfig, NULL);
 
+			for(const auto &pClient : pNetServer->m_Clients)
 			{
-				auto &vecClients = pNetServer->m_Clients;
-
-				FOR_EACH_VEC(vecClients, i)
+				if(pClient->IsConnected() && !pClient->IsFakeClient())
 				{
-					auto *pClient = vecClients[i];
-
-					if(pClient->IsConnected() && !pClient->IsFakeClient())
-					{
-						OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
-					}
+					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
 				}
 			}
 		}
