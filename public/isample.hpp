@@ -56,6 +56,6 @@ public:
 	 * @return              A double pointer to a game event manager.
 	 */
 	virtual IGameEventManager2 **GetGameEventManagerPointer() = 0;
-};
+}; // ISample
 
 #endif // _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_
