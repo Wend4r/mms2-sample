@@ -7,6 +7,12 @@
 		{
 			"CGameResourceService::m_pEntitySystem":
 			{
+				"near_strings":
+				[
+					"CGameResourceService::BuildResourceManifest(start)",
+					"CGameResourceService::BuildResourceManifest(finish)"
+				],
+
 				"win64": 88,
 				"linuxsteamrt64": 80
 			}

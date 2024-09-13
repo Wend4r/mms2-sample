@@ -27,6 +27,20 @@
 			{
 				"library": "server",
 
+				"used_strings":
+				[
+					"-pressdemo",
+					"MathLib_Init",
+					"gameeventmanager->Init()",
+					"CEngineServiceRegistry::RegisterEngineServices()",
+					"CLoopModeRegistry::RegisterLoopModes()",
+					"g_pGameSaveRestoreBlockSet",
+					"InitGameSystems - Start",
+					"InitGameSystems - Finish",
+					"[STARTUP] {%.3f} server module init %s\n",
+					"ok"
+				],
+
 				"win64": "40 57 48 83 EC 20 48 83 3D ? ? ? ? ? 74 07 33 C9 E8 ? ? ? ? FF 15",
 				"linuxsteamrt64": "55 48 89 E5 41 55 41 54 53 48 83 EC 08 48 8D 05 ? ? ? ? 48 83 38 00 74 07 31 FF E8"
 			}
