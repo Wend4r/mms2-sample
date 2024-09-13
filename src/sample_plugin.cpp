@@ -1009,7 +1009,19 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
-	if(!RegisterFirstGameSystem(GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer()))
+	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
+
+	if(!ppFactory)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a first game system factory", maxlen);
+		}
+
+		return false;
+	}
+
+	if(!RegisterFirstGameSystem(ppFactory))
 	{
 		if(error && maxlen)
 		{
