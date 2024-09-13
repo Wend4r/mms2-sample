@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <exception>
 
 #include <any_config.hpp>
 
@@ -309,8 +310,18 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat.AppendToBuffer(sBuffer, "Config");
-			DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+#ifndef _WIN32
+			try
+			{
+				aConcat.AppendToBuffer(sBuffer, "Config");
+				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+			}
+			catch(const std::exception aError)
+			{
+				sMessage.Format("Config: %s\n", aError.what());
+			}
+
+#endif
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
 			Detailed(sBuffer);
 		}
@@ -337,8 +348,18 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 
 			CBufferStringGrowable<1024> sBuffer;
 
-			aConcat.AppendToBuffer(sBuffer, "Config");
-			DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+#ifndef _WIN32
+			try
+			{
+				aConcat.AppendToBuffer(sBuffer, "Config");
+				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+			}
+			catch(const std::exception aError)
+			{
+				sMessage.Format("Config: %s\n", aError.what());
+			}
+
+#endif
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
 			Detailed(sBuffer);
 		}
@@ -1604,8 +1625,18 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 		CBufferStringGrowable<1024> sMessage;
 
-		sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
-		DumpProtobufMessage(aConcat, sMessage, config);
+#ifndef _WIN32
+		try
+		{
+			sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
+			DumpProtobufMessage(aConcat, sMessage, config);
+		}
+		catch(const std::exception aError)
+		{
+			sMessage.Format("Receive a proto message: %s\n", aError.what());
+		}
+
+#endif
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
 
