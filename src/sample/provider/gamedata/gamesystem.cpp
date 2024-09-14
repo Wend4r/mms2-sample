@@ -26,7 +26,7 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 	{
 		auto &aCallbacks = m_aAddressCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("CBaseGameSystemFactory::sm_pFirst"), [this](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("CBaseGameSystemFactory::sm_pFirst"), [&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
 		{
 			m_ppFirstGameSystem = aAddress.RCast<decltype(m_ppFirstGameSystem)>();
 		});

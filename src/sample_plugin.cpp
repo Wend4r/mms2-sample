@@ -124,7 +124,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	// Register chat commands.
-	Sample::ChatCommandSystem::Register("sample", [this](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
+	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
 		CSingleRecipientFilter aFilter(aSlot);
 
@@ -867,7 +867,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 			}
 
 			aDetails.Push("}");
-			aDetails.Send([this](const CUtlString &sMessage)
+			aDetails.Send([&](const CUtlString &sMessage)
 			{
 				Detailed(sMessage);
 			});
@@ -1219,7 +1219,7 @@ bool SamplePlugin::ParseGameEvents()
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([this](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sMessage)
 		{
 			Warning(sMessage);
 		});
@@ -1290,7 +1290,7 @@ bool SamplePlugin::HookGameEvents()
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([this](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sMessage)
 		{
 			Warning(sMessage);
 		});
