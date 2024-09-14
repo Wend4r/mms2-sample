@@ -51,15 +51,17 @@ set_or_external_dir(GAMEDATA_DIR "gamedata")
 set_or_external_dir(LOGGER_DIR "logger")
 set_or_external_dir(METAMOD_DIR "metamod-source")
 set_or_external_dir(SOURCESDK_DIR "sourcesdk")
+set_or_external_dir(TRNALSTIONS_DIR "translations")
 
 include(cmake/platform/shared.cmake)
 
 include(cmake/any_config.cmake)
 include(cmake/dynlibutils.cmake)
 include(cmake/gamedata.cmake)
-include(cmake/sourcesdk.cmake)
-include(cmake/metamod.cmake)
 include(cmake/logger.cmake)
+include(cmake/metamod.cmake)
+include(cmake/sourcesdk.cmake)
+include(cmake/translations.cmake)
 
 set(SOURCE_FILES
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/gameresource.cpp
@@ -101,6 +103,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILER_OPTIONS} ${SOURCESDK_C
 target_link_options(${PROJECT_NAME} PRIVATE ${LINK_OPTIONS} ${SOURCESDK_LINK_OPTIONS})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${COMPILE_DEFINITIONS} ${METAMOD_COMPILE_DEFINITIONS} ${SOURCESDK_COMPILE_DEFINITIONS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${ANY_CONFIG_INCLUDE_DIRS} ${DYNLIBUTILS_INCLUDE_DIRS} ${GAMEDATA_INCLUDE_DIRS} ${LOGGER_INCLUDE_DIRS} ${METAMOD_INCLUDE_DIRS} ${SOURCESDK_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${ANY_CONFIG_INCLUDE_DIRS} ${DYNLIBUTILS_INCLUDE_DIRS} ${GAMEDATA_INCLUDE_DIRS} ${LOGGER_INCLUDE_DIRS} ${METAMOD_INCLUDE_DIRS} ${SOURCESDK_INCLUDE_DIRS} ${TRNALSTIONS_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${ANY_CONFIG_BINARY_DIR} ${DYNLIBUTILS_BINARY_DIR} ${GAMEDATA_BINARY_DIR} ${LOGGER_BINARY_DIR} ${SOURCESDK_BINARY_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES} ${ANY_CONFIG_BINARY_DIR} ${DYNLIBUTILS_BINARY_DIR} ${GAMEDATA_BINARY_DIR} ${LOGGER_BINARY_DIR} ${SOURCESDK_BINARY_DIR} ${TRNALSTIONS_BINARY_DIR})

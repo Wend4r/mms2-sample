@@ -30,6 +30,7 @@
 #	include <concat.hpp>
 
 #	include <logger.hpp>
+#	include <translations.hpp>
 
 #	include <ISmmPlugin.h>
 
@@ -50,6 +51,7 @@
 
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define SAMPLE_GAME_EVENTS_FILES "resource/*.gameevents"
+#	define SAMPLE_GAME_TRANSLATIONS_FILES "translations/*.pharses.*"
 #	define SAMPLE_BASE_PATHID "GAME"
 
 #	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
@@ -132,6 +134,10 @@ public: // Utils.
 	bool LoadProvider(char *error = nullptr, size_t maxlen = 0);
 	bool UnloadProvider(char *error = nullptr, size_t maxlen = 0);
 
+public:
+	bool LoadTranslations(char *error = nullptr, size_t maxlen = 0);
+	bool UnloadTranslations(char *error = nullptr, size_t maxlen = 0);
+
 public: // Game Resource.
 	bool RegisterGameResource(char *error = nullptr, size_t maxlen = 0);
 	bool UnregisterGameResource(char *error = nullptr, size_t maxlen = 0);
@@ -193,6 +199,7 @@ protected: // Fields.
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;
 	CUtlVector<CUtlString> m_vecGameEvents;
+	CUtlVector<Translations> m_vecTranslations;
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;

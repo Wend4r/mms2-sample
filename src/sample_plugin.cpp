@@ -113,6 +113,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
+	if(!LoadTranslations(error, maxlen))
+	{
+		return false;
+	}
+
 	if(!RegisterGameFactory(error, maxlen))
 	{
 		return false;
@@ -130,7 +135,32 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 		for(const auto &sArgument : vecArguments)
 		{
-			SendTextMessage(&aFilter, HUD_PRINTTALK, 2, "Your argument \"%s1\"", sArgument.Get());
+			CUtlString sOutput;
+
+			for(const auto &aTranslations : m_vecTranslations)
+			{
+				int iFound;
+
+				aTranslations.FindPhrase("Your argument", iFound);
+
+				{
+					const auto &aPhrase = aTranslations.GetPhrase(iFound);
+
+					{
+						Translations::CPhrase::CContent aContent;
+
+						aPhrase.Find("en", aContent);
+						sOutput = aContent.Format(aPhrase.GetFormat(), 1, sArgument.Get());
+
+						break;
+					}
+				}
+			}
+
+			if(!sOutput.IsEmpty())
+			{
+				SendTextMessage(&aFilter, HUD_PRINTTALK, 2, "Your argument \"%s1\"", sArgument.Get());
+			}
 		}
 	});
 
@@ -171,6 +201,11 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	Assert(UnhookGameEvents());
+
+	if(!UnloadTranslations(error, maxlen))
+	{
+		return false;
+	}
 
 	if(!UnloadProvider(error, maxlen))
 	{
@@ -984,6 +1019,72 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	}
 
 	return bResult;
+}
+
+bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
+{
+	const char *pszPathID = SAMPLE_BASE_PATHID;
+
+	CUtlVector<CUtlString> vecTranslations;
+
+	Translations::CBufferStringVector vecSubmessages;
+
+	CUtlString sMessage;
+
+	auto aWarnings = CreateWarningsScope();
+
+	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+
+	CBufferStringGrowable<1024> sWarningMessage;
+
+	g_pFullFileSystem->FindFileAbsoluteList(vecTranslations, SAMPLE_GAME_TRANSLATIONS_FILES, pszPathID);
+
+	for(const auto &sFile : vecTranslations)
+	{
+		const char *pszFilename = sFile.Get();
+
+		AnyConfig::Anyone aTranslationsConfig;
+
+		Translations aTranslations;
+
+		if(!aTranslationsConfig.Load(aLoadPresets))
+		{
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+
+			continue;
+		}
+
+		if(!aTranslations.Parse(aTranslationsConfig.Get(), vecSubmessages))
+		{
+			aWarnings.PushFormat("\"%s\"", pszFilename);
+
+			for(const auto &sSubmessage : vecSubmessages)
+			{
+				aWarnings.PushFormat("\t%s", sSubmessage.Get());
+			}
+
+			continue;
+		}
+
+		m_vecTranslations.AddToTail(aTranslations);
+	}
+
+	if(aWarnings.Count())
+	{
+		aWarnings.Send([&](const CUtlString &sMessage)
+		{
+			Warning(sMessage);
+		});
+	}
+
+	return true;
+}
+
+bool SamplePlugin::UnloadTranslations(char *error, size_t maxlen)
+{
+	m_vecTranslations.Purge();
+
+	return true;
 }
 
 bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)

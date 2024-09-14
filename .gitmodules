@@ -17,3 +17,9 @@
 [submodule "Source SDK"]
 	path = external/sourcesdk
 	url = https://github.com/Wend4r/sourcesdk.git
+[submodule "Translations"]
+	path = external/translations
+	url = https://github.com/Wend4r/s2u-translations.git
+[submodule "external/translations"]
+	path = external/translations
+	url = https://github.com/Wend4r/s2u-translations.git
