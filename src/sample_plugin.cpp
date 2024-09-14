@@ -351,7 +351,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 				aConcat.AppendToBuffer(sBuffer, "Config");
 				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
 			}
-			catch(const std::exception aError)
+			catch(const std::exception &aError)
 			{
 				sBuffer.Format("Config: %s\n", aError.what());
 			}
@@ -389,7 +389,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 				aConcat.AppendToBuffer(sBuffer, "Config");
 				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
 			}
-			catch(const std::exception aError)
+			catch(const std::exception &aError)
 			{
 				sBuffer.Format("Config: %s\n", aError.what());
 			}
@@ -1732,7 +1732,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 			sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
 			DumpProtobufMessage(aConcat, sMessage, config);
 		}
-		catch(const std::exception aError)
+		catch(const std::exception &aError)
 		{
 			sMessage.Format("Receive a proto message: %s\n", aError.what());
 		}
