@@ -804,7 +804,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 
 GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
 		DetailedFormat("%s:\n", __FUNCTION__);
 
