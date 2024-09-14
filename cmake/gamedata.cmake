@@ -11,7 +11,7 @@ set(GAMEDATA_BINARY_DIR "s2u-gamedata")
 set(GAMEDATA_INCLUDE_DIRS
 	${GAMEDATA_INCLUDE_DIRS}
 
-	"${GAMEDATA_DIR}/include"
+	${GAMEDATA_DIR}/include
 )
 
 add_subdirectory(${GAMEDATA_DIR} ${GAMEDATA_BINARY_DIR})

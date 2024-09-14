@@ -11,7 +11,7 @@ set(ANY_CONFIG_BINARY_DIR "s2u-any_config")
 set(ANY_CONFIG_INCLUDE_DIRS
 	${ANY_CONFIG_INCLUDE_DIRS}
 
-	"${ANY_CONFIG_DIR}/include"
+	${ANY_CONFIG_DIR}/include
 )
 
 add_subdirectory(${ANY_CONFIG_DIR} ${ANY_CONFIG_BINARY_DIR})
