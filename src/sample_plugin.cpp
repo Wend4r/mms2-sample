@@ -318,7 +318,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 			}
 			catch(const std::exception aError)
 			{
-				sMessage.Format("Config: %s\n", aError.what());
+				sBuffer.Format("Config: %s\n", aError.what());
 			}
 
 #endif
@@ -356,7 +356,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 			}
 			catch(const std::exception aError)
 			{
-				sMessage.Format("Config: %s\n", aError.what());
+				sBuffer.Format("Config: %s\n", aError.what());
 			}
 
 #endif
