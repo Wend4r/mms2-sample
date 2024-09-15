@@ -61,7 +61,7 @@ class CBasePlayerController;
 class INetworkMessageInternal;
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                           public Sample::ChatCommandSystem, public Sample::Provider, virtual public Logger
+                           public Sample::ChatCommandSystem, public Sample::Provider, virtual public Logger, public Translations
 {
 public:
 	SamplePlugin();
@@ -200,7 +200,6 @@ protected: // Fields.
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;
 	CUtlVector<CUtlString> m_vecGameEvents;
-	Translations m_aTranslations;
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;

@@ -143,12 +143,10 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 		int iFound {};
 
-		const auto &aTranslations = m_aTranslations;
-
 		{
-			if(aTranslations.FindPhrase(s_pszYourArgumentPhrase, iFound))
+			if(Translations::FindPhrase(s_pszYourArgumentPhrase, iFound))
 			{
-				const auto &aPhrase = aTranslations.GetPhrase(iFound);
+				const auto &aPhrase = Translations::GetPhrase(iFound);
 
 				if(!aPhrase.Find(s_pszDefaultContryCode, aContent))
 				{
@@ -1079,7 +1077,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 			continue;
 		}
 
-		if(!m_aTranslations.Parse(aTranslationsConfig.Get(), vecSubmessages))
+		if(!Translations::Parse(aTranslationsConfig.Get(), vecSubmessages))
 		{
 			aWarnings.PushFormat("\"%s\"", pszFilename);
 
@@ -1107,7 +1105,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 
 bool SamplePlugin::UnloadTranslations(char *error, size_t maxlen)
 {
-	m_aTranslations.Purge();
+	Translations::Purge();
 
 	return true;
 }
