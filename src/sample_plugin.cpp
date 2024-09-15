@@ -131,35 +131,52 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	// Register chat commands.
 	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
+		Warning("Executing sample command\n");
+
+		static const char s_pszYourArgumentPhrase[] = "Your argument", 
+		                  s_pszDefaultContryCode[] = "en";
+
 		CSingleRecipientFilter aFilter(aSlot);
 
-		for(const auto &sArgument : vecArguments)
+		Translations::CPhrase::CContent aContent;
+		Translations::CPhrase::CFormat aFormat;
+
+		int iFound {};
+
+		const auto &aTranslations = m_aTranslations;
+
+		{
+			if(aTranslations.FindPhrase(s_pszYourArgumentPhrase, iFound))
+			{
+				const auto &aPhrase = aTranslations.GetPhrase(iFound);
+
+				if(!aPhrase.Find(s_pszDefaultContryCode, aContent))
+				{
+					WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", s_pszDefaultContryCode, s_pszYourArgumentPhrase);
+				}
+
+				aFormat = aPhrase.GetFormat();
+			}
+			else
+			{
+				WarningFormat("Not found \"%s\" phrase\n", s_pszYourArgumentPhrase);
+			}
+		}
+
 		{
 			CUtlString sOutput;
 
-			for(const auto &aTranslations : m_vecTranslations)
+			if(!aContent.IsEmpty())
 			{
-				int iFound;
-
-				aTranslations.FindPhrase("Your argument", iFound);
-
+				for(const auto &sArgument : vecArguments)
 				{
-					const auto &aPhrase = aTranslations.GetPhrase(iFound);
+					sOutput = aContent.Format(aFormat, 1, sArgument.Get());
 
+					if(!sOutput.IsEmpty())
 					{
-						Translations::CPhrase::CContent aContent;
-
-						aPhrase.Find("en", aContent);
-						sOutput = aContent.Format(aPhrase.GetFormat(), 1, sArgument.Get());
-
-						break;
+						SendTextMessage(&aFilter, HUD_PRINTTALK, 1, sOutput.Get());
 					}
 				}
-			}
-
-			if(!sOutput.IsEmpty())
-			{
-				SendTextMessage(&aFilter, HUD_PRINTTALK, 2, "Your argument \"%s1\"", sArgument.Get());
 			}
 		}
 	});
@@ -1023,7 +1040,8 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 
 bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 {
-	const char *pszPathID = SAMPLE_BASE_PATHID;
+	const char *pszPathID = SAMPLE_BASE_PATHID, 
+	           *pszTranslationsFiles = SAMPLE_GAME_TRANSLATIONS_PATH_FILES;
 
 	CUtlVector<CUtlString> vecTranslations;
 
@@ -1037,7 +1055,14 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 
 	CBufferStringGrowable<1024> sWarningMessage;
 
-	g_pFullFileSystem->FindFileAbsoluteList(vecTranslations, SAMPLE_GAME_TRANSLATIONS_FILES, pszPathID);
+	g_pFullFileSystem->FindFileAbsoluteList(vecTranslations, pszTranslationsFiles, pszPathID);
+
+	if(!vecTranslations.Count())
+	{
+		snprintf(error, maxlen, "No found translations by \"%s\" path", pszTranslationsFiles);
+
+		return false;
+	}
 
 	for(const auto &sFile : vecTranslations)
 	{
@@ -1045,7 +1070,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 
 		AnyConfig::Anyone aTranslationsConfig;
 
-		Translations aTranslations;
+		aLoadPresets.m_pszFilename = pszFilename;
 
 		if(!aTranslationsConfig.Load(aLoadPresets))
 		{
@@ -1054,7 +1079,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 			continue;
 		}
 
-		if(!aTranslations.Parse(aTranslationsConfig.Get(), vecSubmessages))
+		if(!m_aTranslations.Parse(aTranslationsConfig.Get(), vecSubmessages))
 		{
 			aWarnings.PushFormat("\"%s\"", pszFilename);
 
@@ -1066,7 +1091,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 			continue;
 		}
 
-		m_vecTranslations.AddToTail(aTranslations);
+		MessageFormat("Add to tail %s file", pszFilename);
 	}
 
 	if(aWarnings.Count())
@@ -1082,7 +1107,7 @@ bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
 
 bool SamplePlugin::UnloadTranslations(char *error, size_t maxlen)
 {
-	m_vecTranslations.Purge();
+	m_aTranslations.Purge();
 
 	return true;
 }

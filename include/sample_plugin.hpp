@@ -50,8 +50,9 @@
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
 #	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
-#	define SAMPLE_GAME_EVENTS_FILES "resource/*.gameevents"
-#	define SAMPLE_GAME_TRANSLATIONS_FILES "translations/*.pharses.*"
+#	define SAMPLE_GAME_EVENTS_FILES "resource" CORRECT_PATH_SEPARATOR_S "*.gameevents"
+#	define SAMPLE_GAME_TRANSLATIONS_FILES "translations" CORRECT_PATH_SEPARATOR_S "*.phrases.*"
+#	define SAMPLE_GAME_TRANSLATIONS_PATH_FILES SAMPLE_BASE_DIR CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_TRANSLATIONS_FILES
 #	define SAMPLE_BASE_PATHID "GAME"
 
 #	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
@@ -199,7 +200,7 @@ protected: // Fields.
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;
 	CUtlVector<CUtlString> m_vecGameEvents;
-	CUtlVector<Translations> m_vecTranslations;
+	Translations m_aTranslations;
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;
