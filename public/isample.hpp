@@ -33,6 +33,10 @@ class CGameEntitySystem;
 class CBaseGameSystemFactory;
 class IGameEventManager2;
 
+/**
+ * @brief A sample interface.
+ * Note: gets with "ismm->MetaFactory(SAMPLE_INTERFACE_NAME, NULL, NULL);"
+**/
 class ISample
 {
 public:
@@ -41,21 +45,21 @@ public:
 	 * 
 	 * @return              A double pointer to a game entity system.
 	 */
-	virtual CGameEntitySystem **GetGameEntitySystemPointer() = 0;
+	virtual CGameEntitySystem **GetGameEntitySystemPointer() const = 0;
 
 	/**
 	 * @brief Gets a first game system.
 	 * 
 	 * @return              A double pointer to a first game system.
 	 */
-	virtual CBaseGameSystemFactory **GetFirstGameSystemPointer() = 0;
+	virtual CBaseGameSystemFactory **GetFirstGameSystemPointer() const = 0;
 
 	/**
 	 * @brief Gets a game event manager.
 	 * 
 	 * @return              A double pointer to a game event manager.
 	 */
-	virtual IGameEventManager2 **GetGameEventManagerPointer() = 0;
+	virtual IGameEventManager2 **GetGameEventManagerPointer() const = 0;
 }; // ISample
 
 #endif // _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_

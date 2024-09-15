@@ -306,17 +306,17 @@ void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
 	return nullptr;
 }
 
-CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer()
+CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer() const
 {
 	return reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
 }
 
-CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer()
+CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
 }
 
-IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer()
+IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }

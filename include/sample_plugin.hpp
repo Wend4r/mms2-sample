@@ -87,9 +87,9 @@ public: // IMetamodListener
 
 
 public: // ISample
-	CGameEntitySystem **GetGameEntitySystemPointer() override;
-	CBaseGameSystemFactory **GetFirstGameSystemPointer() override;
-	IGameEventManager2 **GetGameEventManagerPointer() override;
+	CGameEntitySystem **GetGameEntitySystemPointer() const override;
+	CBaseGameSystemFactory **GetFirstGameSystemPointer() const override;
+	IGameEventManager2 **GetGameEventManagerPointer() const override;
 
 public: // CBaseGameSystem
 	bool Init() override;
