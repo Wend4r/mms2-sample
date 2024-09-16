@@ -41,6 +41,7 @@
 #	include <igamesystemfactory.h>
 #	include <iloopmode.h>
 #	include <iserver.h>
+#	include <netmessages.h>
 #	include <playerslot.h>
 #	include <tier0/bufferstring.h>
 #	include <tier0/strtools.h>
@@ -53,9 +54,13 @@
 #	define SAMPLE_GAME_EVENTS_FILES "resource" CORRECT_PATH_SEPARATOR_S "*.gameevents"
 #	define SAMPLE_GAME_TRANSLATIONS_FILES "translations" CORRECT_PATH_SEPARATOR_S "*.phrases.*"
 #	define SAMPLE_GAME_TRANSLATIONS_PATH_FILES SAMPLE_BASE_DIR CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_TRANSLATIONS_FILES
+#	define SAMPLE_GAME_LANGUAGES_FILES "configs" CORRECT_PATH_SEPARATOR_S "languages.*"
+#	define SAMPLE_GAME_LANGUAGES_PATH_FILES SAMPLE_BASE_DIR CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_LANGUAGES_FILES
 #	define SAMPLE_BASE_PATHID "GAME"
 
 #	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
+
+#	define SAMPLE_CLIENT_CVAR_NAME_LANGUAGE "cl_language"
 
 class CBasePlayerController;
 class INetworkMessageInternal;
@@ -85,11 +90,54 @@ public: // ISmmPlugin
 public: // IMetamodListener
 	void *OnMetamodQuery(const char *iface, int *ret) override;
 
-
 public: // ISample
 	CGameEntitySystem **GetGameEntitySystemPointer() const override;
 	CBaseGameSystemFactory **GetFirstGameSystemPointer() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
+
+	class CLanguage : public ISample::ILanguage
+	{
+		friend class SamplePlugin;
+
+	public:
+		CLanguage(const CUtlSymbolLarge &sInitName = NULL, const char *pszInitCountryCode = "en");
+
+	public:
+		const char *GetName() const override;
+		const char *GetCountryCode() const override;
+
+	protected:
+		void SetName(const CUtlSymbolLarge &sInitName);
+		void SetCountryCode(const char *psz);
+
+	private:
+		CUtlSymbolLarge m_sName;
+		CUtlString m_sCountryCode;
+	}; // CLanguage
+
+	class CPlayerData : public IPlayerData
+	{
+		friend class SamplePlugin;
+
+	public:
+		CPlayerData();
+
+	public:
+		const ILanguage *GetLanguage() const override;
+		void SetLanguage(const ILanguage *pData) override;
+		bool AddLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
+		bool RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
+
+		virtual void OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData);
+
+	private:
+		const ILanguage *m_pLanguage;
+		CUtlVector<const LanguageHandleCallback_t *> m_vecLanguageCallbacks;
+	}; // CPlayerData
+
+	const ISample::ILanguage *GetServerLanguage() const override;
+	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;
+	IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) override;
 
 public: // CBaseGameSystem
 	bool Init() override;
@@ -135,10 +183,6 @@ public: // Utils.
 	bool LoadProvider(char *error = nullptr, size_t maxlen = 0);
 	bool UnloadProvider(char *error = nullptr, size_t maxlen = 0);
 
-public:
-	bool LoadTranslations(char *error = nullptr, size_t maxlen = 0);
-	bool UnloadTranslations(char *error = nullptr, size_t maxlen = 0);
-
 public: // Game Resource.
 	bool RegisterGameResource(char *error = nullptr, size_t maxlen = 0);
 	bool UnregisterGameResource(char *error = nullptr, size_t maxlen = 0);
@@ -155,9 +199,18 @@ public: // Network Messages.
 	bool RegisterNetMessages(char *error = nullptr, size_t maxlen = 0);
 	bool UnregisterNetMessages(char *error = nullptr, size_t maxlen = 0);
 
+public: // Languages.
+	bool ParseLanguages(char *error = nullptr, size_t maxlen = 0);
+	bool ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages);
+	bool ClearLanguages(char *error = nullptr, size_t maxlen = 0);
+
+public: // Translations.
+	bool ParseTranslations(char *error = nullptr, size_t maxlen = 0);
+	bool ClearTranslations(char *error = nullptr, size_t maxlen = 0);
+
 public: // Event actions.
 	bool ParseGameEvents();
-	bool ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &vecMessages); // Parse the structure of events.
+	bool ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages); // Parse the structure of events.
 	bool ClearGameEvents();
 
 	bool HookGameEvents();
@@ -174,6 +227,7 @@ public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
 	void OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs);
 	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	bool OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
 public: // Dump ones.
@@ -186,20 +240,45 @@ public: // Dump ones.
 	void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
 
 public: // Utils.
+	void SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie);
 	void SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1 = "", const char *pszParam2 = "", const char *pszParam3 = "", const char *pszParam4 = "");
 	void SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...);
 
-public: // Handlers.
+protected: // Handlers.
 	void OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession);
-	void OnChatCommandExample(CPlayerSlot nSlot, CUtlVector<CUtlString> &vecArgs);
 	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	bool OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason);
 
-protected: // Fields.
+protected: // ConVar symbols.
+	CUtlSymbolLarge GetConVarSymbol(const char *pszName);
+	CUtlSymbolLarge FindConVarSymbol(const char *pszName) const;
+
+private: // ConVar (hash)map.
+	CUtlSymbolTableLarge_CI m_tableConVars;
+	CUtlMap<CUtlSymbolLarge, int> m_mapConVarCookies;
+
+protected: // Language symbols.
+	CUtlSymbolLarge GetLanguageSymbol(const char *pszName);
+	CUtlSymbolLarge FindLanguageSymbol(const char *pszName) const;
+
+private: // Language (hash)map.
+	CUtlSymbolTableLarge_CI m_tableLanguages;
+	CUtlMap<CUtlSymbolLarge, CLanguage> m_mapLanguages;
+
+private: // Fields.
 	IGameSystemFactory *m_pFactory = NULL;
+
+	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;
+
 	CUtlVector<CUtlString> m_vecGameEvents;
+
+	CLanguage m_aServerLanguage;
+	CUtlVector<CLanguage> m_vecLanguages;
+
+	CPlayerData m_aPlayers[ABSOLUTE_PLAYER_LIMIT];
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;

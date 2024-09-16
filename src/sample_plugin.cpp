@@ -45,6 +45,7 @@
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
+SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
 static SamplePlugin s_aSamplePlugin;
@@ -78,7 +79,9 @@ SamplePlugin::SamplePlugin()
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
     }, 0, LV_DETAILED, SAMPLE_LOGGINING_COLOR),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
-    m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true)
+    m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true),
+    m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
+    m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
 {
 }
 
@@ -113,7 +116,12 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
-	if(!LoadTranslations(error, maxlen))
+	if(!ParseLanguages(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!ParseTranslations(error, maxlen))
 	{
 		return false;
 	}
@@ -133,8 +141,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	{
 		Warning("Executing sample command\n");
 
-		static const char s_pszYourArgumentPhrase[] = "Your argument", 
-		                  s_pszDefaultContryCode[] = "en";
+		static const char s_pszYourArgumentPhrase[] = "Your argument";
 
 		CSingleRecipientFilter aFilter(aSlot);
 
@@ -148,9 +155,13 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 			{
 				const auto &aPhrase = Translations::GetPhrase(iFound);
 
-				if(!aPhrase.Find(s_pszDefaultContryCode, aContent))
+				const auto *pLanguage = m_aPlayers[aSlot.Get()].GetLanguage();
+
+				const char *pszContryCode = pLanguage ? pLanguage->GetCountryCode() : m_aServerLanguage.GetCountryCode();
+
+				if(!aPhrase.Find(pszContryCode, aContent))
 				{
-					WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", s_pszDefaultContryCode, s_pszYourArgumentPhrase);
+					WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", pszContryCode, s_pszYourArgumentPhrase);
 				}
 
 				aFormat = aPhrase.GetFormat();
@@ -217,10 +228,9 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 
 	Assert(UnhookGameEvents());
 
-	if(!UnloadTranslations(error, maxlen))
-	{
-		return false;
-	}
+	Assert(ClearGameEvents());
+	Assert(ClearLanguages());
+	Assert(ClearTranslations());
 
 	if(!UnloadProvider(error, maxlen))
 	{
@@ -319,6 +329,93 @@ CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
 IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
+}
+
+SamplePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
+ :  m_sName(sInitName), 
+    m_sCountryCode(pszInitCountryCode)
+{
+}
+
+const char *SamplePlugin::CLanguage::GetName() const
+{
+	return m_sName.String();
+}
+
+void SamplePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
+{
+	m_sName = s;
+}
+
+const char *SamplePlugin::CLanguage::GetCountryCode() const
+{
+	return m_sCountryCode;
+}
+
+void SamplePlugin::CLanguage::SetCountryCode(const char *psz)
+{
+	m_sCountryCode = psz;
+}
+
+SamplePlugin::CPlayerData::CPlayerData()
+ :  m_pLanguage(nullptr)
+{
+}
+
+const ISample::ILanguage *SamplePlugin::CPlayerData::GetLanguage() const
+{
+	return m_pLanguage;
+}
+
+void SamplePlugin::CPlayerData::SetLanguage(const ILanguage *pData)
+{
+	m_pLanguage = pData;
+}
+
+bool SamplePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+{
+	// Check on exists.
+	{
+		int iFound = m_vecLanguageCallbacks.Find(pfnCallback);
+
+		Assert(iFound != m_vecLanguageCallbacks.InvalidIndex());
+	}
+
+	m_vecLanguageCallbacks.AddToTail(pfnCallback);
+
+	return true;
+}
+
+bool SamplePlugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+{
+	return m_vecLanguageCallbacks.FindAndRemove(pfnCallback);
+}
+
+void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
+{
+	SetLanguage(pData);
+
+	for(const auto &it : m_vecLanguageCallbacks)
+	{
+		(*it)(aSlot, pData);
+	}
+}
+
+const ISample::ILanguage *SamplePlugin::GetServerLanguage() const
+{
+	return &m_aServerLanguage;
+}
+
+const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
+{
+	auto iFound = m_mapLanguages.Find(FindLanguageSymbol(psz));
+
+	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
+}
+
+ISample::IPlayerData *SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+{
+	return &m_aPlayers[aSlot.Get()];
 }
 
 bool SamplePlugin::Init()
@@ -1036,80 +1133,6 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::LoadTranslations(char *error, size_t maxlen)
-{
-	const char *pszPathID = SAMPLE_BASE_PATHID, 
-	           *pszTranslationsFiles = SAMPLE_GAME_TRANSLATIONS_PATH_FILES;
-
-	CUtlVector<CUtlString> vecTranslations;
-
-	Translations::CBufferStringVector vecSubmessages;
-
-	CUtlString sMessage;
-
-	auto aWarnings = CreateWarningsScope();
-
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
-
-	CBufferStringGrowable<1024> sWarningMessage;
-
-	g_pFullFileSystem->FindFileAbsoluteList(vecTranslations, pszTranslationsFiles, pszPathID);
-
-	if(!vecTranslations.Count())
-	{
-		snprintf(error, maxlen, "No found translations by \"%s\" path", pszTranslationsFiles);
-
-		return false;
-	}
-
-	for(const auto &sFile : vecTranslations)
-	{
-		const char *pszFilename = sFile.Get();
-
-		AnyConfig::Anyone aTranslationsConfig;
-
-		aLoadPresets.m_pszFilename = pszFilename;
-
-		if(!aTranslationsConfig.Load(aLoadPresets))
-		{
-			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
-
-			continue;
-		}
-
-		if(!Translations::Parse(aTranslationsConfig.Get(), vecSubmessages))
-		{
-			aWarnings.PushFormat("\"%s\"", pszFilename);
-
-			for(const auto &sSubmessage : vecSubmessages)
-			{
-				aWarnings.PushFormat("\t%s", sSubmessage.Get());
-			}
-
-			continue;
-		}
-
-		MessageFormat("Add to tail %s file", pszFilename);
-	}
-
-	if(aWarnings.Count())
-	{
-		aWarnings.Send([&](const CUtlString &sMessage)
-		{
-			Warning(sMessage);
-		});
-	}
-
-	return true;
-}
-
-bool SamplePlugin::UnloadTranslations(char *error, size_t maxlen)
-{
-	Translations::Purge();
-
-	return true;
-}
-
 bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 {
 	CGameEntitySystem **pGameEntitySystem = GetGameEntitySystemPointer();
@@ -1253,6 +1276,10 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 	} aMessageInitializers[] =
 	{
 		{
+			"CSVCMsg_GetCvarValue",
+			&m_pGetCvarValueMessage,
+		},
+		{
 			"CUserMessageSayText2",
 			&m_pSayText2Message,
 		},
@@ -1289,6 +1316,182 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 bool SamplePlugin::UnregisterNetMessages(char *error, size_t maxlen)
 {
 	m_pSayText2Message = NULL;
+
+	return true;
+}
+
+bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
+{
+	const char *pszPathID = SAMPLE_BASE_PATHID, 
+	           *pszLanguagesFiles = SAMPLE_GAME_LANGUAGES_PATH_FILES;
+
+	CUtlVector<CUtlString> vecLangugesFiles;
+	CUtlVector<CUtlString> vecSubmessages;
+
+	CUtlString sMessage;
+
+	auto aWarnings = CreateWarningsScope();
+
+	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+
+	CBufferStringGrowable<1024> sWarningMessage;
+
+	g_pFullFileSystem->FindFileAbsoluteList(vecLangugesFiles, pszLanguagesFiles, pszPathID);
+
+	if(!vecLangugesFiles.Count())
+	{
+		snprintf(error, maxlen, "No found languages by \"%s\" path", pszLanguagesFiles);
+
+		return false;
+	}
+
+	for(const auto &sFile : vecLangugesFiles)
+	{
+		const char *pszFilename = sFile.Get();
+
+		AnyConfig::Anyone aLanguagesConfig;
+
+		aLoadPresets.m_pszFilename = pszFilename;
+
+		if(!aLanguagesConfig.Load(aLoadPresets))
+		{
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+
+			continue;
+		}
+
+		if(!ParseLanguages(aLanguagesConfig.Get(), vecSubmessages))
+		{
+			aWarnings.PushFormat("\"%s\"", pszFilename);
+
+			for(const auto &sSubmessage : vecSubmessages)
+			{
+				aWarnings.PushFormat("\t%s", sSubmessage.Get());
+			}
+
+			continue;
+		}
+	}
+
+	if(aWarnings.Count())
+	{
+		aWarnings.Send([&](const CUtlString &sMessage)
+		{
+			Warning(sMessage);
+		});
+	}
+
+	return true;
+}
+
+bool SamplePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
+{
+	int iMemberCount = pRoot->GetMemberCount();
+
+	if(!iMemberCount)
+	{
+		vecMessages.AddToTail("No members");
+
+		return true;
+	}
+
+	const KeyValues3 *pDefaultData = pRoot->FindMember("default");
+
+	const char *pszServerContryCode = pDefaultData ? pDefaultData->GetString() : "en";
+
+	m_aServerLanguage.SetCountryCode(pszServerContryCode);
+
+	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
+	{
+		const char *pszMemberName = pRoot->GetMemberName(n);
+
+		auto sMemberSymbol = GetLanguageSymbol(pszMemberName);
+
+		const KeyValues3 *pMember = pRoot->GetMember(n);
+
+		const char *pszMemberValue = pMember->GetString(pszServerContryCode);
+
+		m_mapLanguages.Insert(sMemberSymbol, {sMemberSymbol, pszMemberValue});
+	}
+
+	return true;
+}
+
+bool SamplePlugin::ClearLanguages(char *error, size_t maxlen)
+{
+	m_vecLanguages.Purge();
+
+	return true;
+}
+
+bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
+{
+	const char *pszPathID = SAMPLE_BASE_PATHID, 
+	           *pszTranslationsFiles = SAMPLE_GAME_TRANSLATIONS_PATH_FILES;
+
+	CUtlVector<CUtlString> vecTranslationsFiles;
+
+	Translations::CBufferStringVector vecSubmessages;
+
+	CUtlString sMessage;
+
+	auto aWarnings = CreateWarningsScope();
+
+	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+
+	CBufferStringGrowable<1024> sWarningMessage;
+
+	g_pFullFileSystem->FindFileAbsoluteList(vecTranslationsFiles, pszTranslationsFiles, pszPathID);
+
+	if(!vecTranslationsFiles.Count())
+	{
+		snprintf(error, maxlen, "No found translations by \"%s\" path", pszTranslationsFiles);
+
+		return false;
+	}
+
+	for(const auto &sFile : vecTranslationsFiles)
+	{
+		const char *pszFilename = sFile.Get();
+
+		AnyConfig::Anyone aTranslationsConfig;
+
+		aLoadPresets.m_pszFilename = pszFilename;
+
+		if(!aTranslationsConfig.Load(aLoadPresets))
+		{
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+
+			continue;
+		}
+
+		if(!Translations::Parse(aTranslationsConfig.Get(), vecSubmessages))
+		{
+			aWarnings.PushFormat("\"%s\"", pszFilename);
+
+			for(const auto &sSubmessage : vecSubmessages)
+			{
+				aWarnings.PushFormat("\t%s", sSubmessage.Get());
+			}
+
+			continue;
+		}
+	}
+
+	if(aWarnings.Count())
+	{
+		aWarnings.Send([&](const CUtlString &sMessage)
+		{
+			Warning(sMessage);
+		});
+	}
+
+	return true;
+}
+
+bool SamplePlugin::ClearTranslations(char *error, size_t maxlen)
+{
+	Translations::Purge();
 
 	return true;
 }
@@ -1352,9 +1555,9 @@ bool SamplePlugin::ParseGameEvents()
 	return true;
 }
 
-bool SamplePlugin::ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &vecMessages)
+bool SamplePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
 {
-	int iMemberCount = pEvents->GetMemberCount();
+	int iMemberCount = pData->GetMemberCount();
 
 	if(!iMemberCount)
 	{
@@ -1367,7 +1570,7 @@ bool SamplePlugin::ParseGameEvents(KeyValues3 *pEvents, CUtlVector<CUtlString> &
 
 	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
 	{
-		const char *pszEvent = pEvents->GetMemberName(n);
+		const char *pszEvent = pData->GetMemberName(n);
 
 		if(!pszEvent)
 		{
@@ -1552,6 +1755,15 @@ CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
 
+bool SamplePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
+{
+	auto *pClient = META_IFACEPTR(CServerSideClientBase);
+
+	OnProcessRespondCvarValue(pClient, aMessage);
+
+	RETURN_META_VALUE(MRES_IGNORED, true);
+}
+
 void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 {
 	auto *pClient = META_IFACEPTR(CServerSideClientBase);
@@ -1622,6 +1834,33 @@ void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBuffer
 void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
 {
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
+}
+
+void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
+{
+	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
+
+	if(IsChannelEnabled(LV_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat;
+
+		CBufferStringGrowable<1024> sBuffer;
+
+		sBuffer.Format("Send get cvar message (%s):\n", pGetCvarValueMessage->GetUnscopedName());
+		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
+		aConcat.AppendToBuffer(sBuffer, "Cookie", iCookie);
+
+		Detailed(sBuffer);
+	}
+
+	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->ToPB<CSVCMsg_GetCvarValue>();
+
+	pMessage->set_cvar_name(pszName);
+	pMessage->set_cookie(iCookie);
+
+	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pGetCvarValueMessage, pMessage, 0);
+
+	delete pMessage;
 }
 
 void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
@@ -1770,6 +2009,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
+	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
 	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
 	if(IsChannelEnabled(LS_DETAILED))
@@ -1793,11 +2033,81 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		Detailed(sMessage);
 	}
+
+	// Get "cl_language" cvar value from a client.
+	{
+		CSingleRecipientFilter aFilter(pClient->GetPlayerSlot());
+
+		const char *pszCvarName = SAMPLE_CLIENT_CVAR_NAME_LANGUAGE;
+
+		int iCookie {};
+
+		{
+			auto sConVarSymbol = GetConVarSymbol(pszCvarName);
+
+			auto iFound = m_mapConVarCookies.Find(sConVarSymbol);
+
+			if(m_mapConVarCookies.IsValidIndex(iFound))
+			{
+				auto &iFoundCookie = m_mapConVarCookies.Element(iFound);
+
+				iFoundCookie++;
+				iCookie = iFoundCookie;
+			}
+			else
+			{
+				iCookie = 0;
+				m_mapConVarCookies.Insert(sConVarSymbol, iCookie);
+			}
+		}
+
+		SendCvarValueQuery(&aFilter, pszCvarName, iCookie);
+	}
+}
+
+bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
+{
+	auto sFoundSymbol = FindConVarSymbol(aMessage.name().c_str());
+
+	if(!sFoundSymbol.IsValid())
+	{
+		return false;
+	}
+
+	auto iFound = m_mapConVarCookies.Find(sFoundSymbol);
+
+	if(!m_mapConVarCookies.IsValidIndex(iFound))
+	{
+		return false;
+	}
+
+	const auto &itCookie = m_mapConVarCookies.Element(iFound);
+
+	if(itCookie != aMessage.cookie())
+	{
+		return false;
+	}
+
+	auto iLanguageFound = m_mapLanguages.Find(FindLanguageSymbol(aMessage.value().c_str()));
+
+	if(!m_mapLanguages.IsValidIndex(iLanguageFound))
+	{
+		return false;
+	}
+
+	auto aPlayerSlot = pClient->GetPlayerSlot();
+
+	auto &itLanguage = m_mapLanguages.Element(iLanguageFound);
+
+	m_aPlayers[aPlayerSlot.Get()].OnLanguageReceived(aPlayerSlot, &itLanguage);
+
+	return true;
 }
 
 void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
 {
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, true);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -1811,4 +2121,24 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 		Detailed(sMessage);
 	}
+}
+
+CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)
+{
+	return m_tableConVars.AddString(pszName);
+}
+
+CUtlSymbolLarge SamplePlugin::FindConVarSymbol(const char *pszName) const
+{
+	return m_tableConVars.Find(pszName);
+}
+
+CUtlSymbolLarge SamplePlugin::GetLanguageSymbol(const char *pszName)
+{
+	return m_tableLanguages.AddString(pszName);
+}
+
+CUtlSymbolLarge SamplePlugin::FindLanguageSymbol(const char *pszName) const
+{
+	return m_tableLanguages.Find(pszName);
 }
