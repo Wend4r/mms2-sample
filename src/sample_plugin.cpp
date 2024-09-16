@@ -139,52 +139,26 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	// Register chat commands.
 	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
-		static const char s_pszYourArgumentPhrase[] = "Your argument";
-
 		CSingleRecipientFilter aFilter(aSlot);
 
-		Translations::CPhrase::CContent aContent;
-		Translations::CPhrase::CFormat aFormat;
+		int iClient = aSlot.Get();
 
-		int iFound {};
+		Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
 
+		const auto &aPlayer = m_aPlayers[iClient];
+
+		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
+
+		if(aPhrase.m_pFormat && aPhrase.m_pContent)
 		{
-			if(Translations::FindPhrase(s_pszYourArgumentPhrase, iFound))
+			for(const auto &sArgument : vecArguments)
 			{
-				const auto &aPhrase = Translations::GetPhrase(iFound);
-
-				const auto *pLanguage = m_aPlayers[aSlot.Get()].GetLanguage();
-
-				const char *pszContryCode = pLanguage ? pLanguage->GetCountryCode() : m_aServerLanguage.GetCountryCode();
-
-				if(!aPhrase.Find(pszContryCode, aContent))
-				{
-					Logger::WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", pszContryCode, s_pszYourArgumentPhrase);
-				}
-
-				aFormat = aPhrase.GetFormat();
-			}
-			else
-			{
-				Logger::WarningFormat("Not found \"%s\" phrase\n", s_pszYourArgumentPhrase);
+				SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 1, sArgument.Get()).Get());
 			}
 		}
-
+		else
 		{
-			CUtlString sOutput;
-
-			if(!aContent.IsEmpty())
-			{
-				for(const auto &sArgument : vecArguments)
-				{
-					sOutput = aContent.Format(aFormat, 1, sArgument.Get());
-
-					if(!sOutput.IsEmpty())
-					{
-						SendTextMessage(&aFilter, HUD_PRINTTALK, 1, sOutput.Get());
-					}
-				}
-			}
+			Logger::Warning("Not found a your argument phrase\n");
 		}
 	});
 
@@ -356,7 +330,8 @@ void SamplePlugin::CLanguage::SetCountryCode(const char *psz)
 }
 
 SamplePlugin::CPlayerData::CPlayerData()
- :  m_pLanguage(nullptr)
+ :  m_pLanguage(nullptr), 
+    m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
 
@@ -397,6 +372,74 @@ void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage 
 	{
 		(*it)(aSlot, pData);
 	}
+}
+
+
+void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
+{
+	struct
+	{
+		const char *pszName;
+		TranslatedPhrase *pTranslated;
+	} aPhrases[] =
+	{
+		{
+			"Your argument",
+			&m_aYourArgumentPhrase,
+		}
+	};
+
+	const Translations::CPhrase::CContent *paContent;
+
+	Translations::CPhrase::CFormat aFormat;
+
+	int iFound {};
+
+	const auto *pLanguage = GetLanguage();
+
+	const char *pszServerContryCode = aServerLanguage.GetCountryCode(), 
+	           *pszContryCode = pLanguage ? pLanguage->GetCountryCode() : pszServerContryCode;
+
+	for(const auto &aPhrase : aPhrases)
+	{
+		const char *pszPhraseName = aPhrase.pszName;
+
+		if(pTranslations->FindPhrase(pszPhraseName, iFound))
+		{
+			const auto &aTranslationsPhrase = pTranslations->GetPhrase(iFound);
+
+			if(!aTranslationsPhrase.Find(pszContryCode, paContent) || !aTranslationsPhrase.Find(pszServerContryCode, paContent))
+			{
+				CUtlString sMessage;
+
+				sMessage.Format("Not found \"%s\" country code for \"%s\" phrase\n", pszContryCode, pszPhraseName);
+				vecMessages.AddToTail(sMessage);
+
+				continue;
+			}
+
+			aPhrase.pTranslated->m_pFormat = &aTranslationsPhrase.GetFormat();
+		}
+		else
+		{
+			CUtlString sMessage;
+
+			sMessage.Format("Not found \"%s\" phrase\n", pszPhraseName);
+			vecMessages.AddToTail(sMessage);
+
+			continue;
+		}
+
+		if(!paContent->IsEmpty())
+		{
+			aPhrase.pTranslated->m_pContent = paContent;
+		}
+	}
+}
+
+const SamplePlugin::CPlayerData::TranslatedPhrase &SamplePlugin::CPlayerData::GetYourArgumentPhrase() const
+{
+	return m_aYourArgumentPhrase;
 }
 
 const ISample::ILanguage *SamplePlugin::GetServerLanguage() const
@@ -1039,7 +1082,7 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 				aWarnings.Push(aMessage.Get());
 			}
 
-			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
 				Logger::Warning(rgba, sContext);
 			});
@@ -1076,7 +1119,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 				aWarnings.Push(aMessage.Get());
 			}
 
-			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
 				Logger::Warning(rgba, sContext);
 			});
@@ -1113,7 +1156,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 				aWarnings.Push(aMessage.Get());
 			}
 
-			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
+			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
 				Logger::Warning(rgba, sContext);
 			});
@@ -1287,10 +1330,8 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 		},
 	};
 
-	for(size_t n = 0, nSize = ARRAYSIZE(aMessageInitializers); n < nSize; n++)
+	for(auto &aMessageInitializer : aMessageInitializers)
 	{
-		auto &aMessageInitializer = aMessageInitializers[n];
-
 		const char *pszMessageName = aMessageInitializer.pszName;
 
 		INetworkMessageInternal *pMessage = g_pNetworkMessages->FindNetworkMessagePartial(pszMessageName);
@@ -2091,7 +2132,31 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 
 	auto &itLanguage = m_mapLanguages.Element(iLanguageFound);
 
-	m_aPlayers[aPlayerSlot.Get()].OnLanguageReceived(aPlayerSlot, &itLanguage);
+	int iClient = aPlayerSlot.Get();
+
+	Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
+
+	auto &aPlayer = m_aPlayers[iClient];
+
+	aPlayer.OnLanguageReceived(aPlayerSlot, &itLanguage);
+
+	{
+		CUtlVector<CUtlString> vecMessages;
+
+		auto aWarnings = Logger::CreateWarningsScope();
+
+		aPlayer.TranslatePhrases(this, this->m_aServerLanguage, vecMessages);
+
+		for(const auto &sMessage : vecMessages)
+		{
+			aWarnings.Push(sMessage.Get());
+		}
+
+		aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
+		{
+			Logger::Warning(rgba, sContext);
+		});
+	}
 
 	return true;
 }

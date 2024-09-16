@@ -128,11 +128,25 @@ public: // ISample
 		bool AddLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
 		bool RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
 
+	public:
 		virtual void OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData);
+
+	public:
+		struct TranslatedPhrase
+		{
+			const Translations::CPhrase::CFormat *m_pFormat;
+			const Translations::CPhrase::CContent *m_pContent;
+		};
+
+		void TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages);
+		const TranslatedPhrase &GetYourArgumentPhrase() const;
 
 	private:
 		const ILanguage *m_pLanguage;
 		CUtlVector<const LanguageHandleCallback_t *> m_vecLanguageCallbacks;
+
+	private:
+		TranslatedPhrase m_aYourArgumentPhrase;
 	}; // CPlayerData
 
 	const ISample::ILanguage *GetServerLanguage() const override;
