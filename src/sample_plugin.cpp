@@ -101,7 +101,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		CBufferStringGrowable<1024> sMessage;
 
 		DumpGlobals(s_aEmbedConcat, sMessage);
-		Detailed(sMessage);
+		Logger::Detailed(sMessage);
 	}
 
 	ConVar_Register(FCVAR_RELEASE | FCVAR_GAMEDLL);
@@ -139,7 +139,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	// Register chat commands.
 	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
-		Warning("Executing sample command\n");
+		Logger::Warning("Executing sample command\n");
 
 		static const char s_pszYourArgumentPhrase[] = "Your argument";
 
@@ -161,14 +161,14 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 				if(!aPhrase.Find(pszContryCode, aContent))
 				{
-					WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", pszContryCode, s_pszYourArgumentPhrase);
+					Logger::WarningFormat("Not found \"%s\" country code for \"%s\" phrase\n", pszContryCode, s_pszYourArgumentPhrase);
 				}
 
 				aFormat = aPhrase.GetFormat();
 			}
 			else
 			{
-				WarningFormat("Not found \"%s\" phrase\n", s_pszYourArgumentPhrase);
+				Logger::WarningFormat("Not found \"%s\" phrase\n", s_pszYourArgumentPhrase);
 			}
 		}
 
@@ -422,7 +422,7 @@ bool SamplePlugin::Init()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 
 	return true;
@@ -432,7 +432,7 @@ void SamplePlugin::PostInit()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -440,7 +440,7 @@ void SamplePlugin::Shutdown()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -449,7 +449,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 	if(IsChannelEnabled(LS_DETAILED))
 	{
 
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -470,7 +470,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 
 #endif
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -479,7 +479,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -487,7 +487,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -508,7 +508,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 
 #endif
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -517,7 +517,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -525,7 +525,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -533,7 +533,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 			CBufferStringGrowable<1024> sBuffer;
 
 			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pResourceManifest);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -542,7 +542,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -553,7 +553,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 			aConcat.AppendToBuffer(sBuffer, "Event loop");
 			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
 			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 
@@ -563,7 +563,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 
 		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
 		{
-			WarningFormat("%s\n", sMessage);
+			Logger::WarningFormat("%s\n", sMessage);
 		}
 	}
 }
@@ -572,7 +572,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -580,7 +580,7 @@ GS_EVENT_MEMBER(SamplePlugin, Disconnect)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -588,7 +588,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -599,7 +599,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 			aConcat.AppendToBuffer(sBuffer, "Event loop");
 			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
 			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap ? "true" : "false");
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -608,7 +608,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -623,7 +623,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
 			aConcat.AppendPointerToBuffer(sBuffer, "Manifest", msg.m_pManifest);
 			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -632,7 +632,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -642,7 +642,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -651,7 +651,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -661,7 +661,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -670,7 +670,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -683,7 +683,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 			aConcat.AppendToBuffer(sBuffer, "Entity list");
 			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -692,7 +692,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -705,7 +705,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 			aConcat.AppendToBuffer(sBuffer, "Entity list");
 			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -714,7 +714,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -724,7 +724,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -733,7 +733,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -743,7 +743,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendHandleToBuffer(sBuffer, "Previous handle", msg.m_PreviousHandle);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -752,7 +752,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -760,7 +760,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -768,7 +768,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 			CBufferStringGrowable<1024> sBuffer;
 
 			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -777,7 +777,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -786,7 +786,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 
 			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -795,7 +795,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -805,7 +805,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
 			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -814,7 +814,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -822,7 +822,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -830,7 +830,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 			CBufferStringGrowable<1024> sBuffer;
 			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -839,7 +839,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -848,7 +848,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 
 			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -857,7 +857,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s\n", __FUNCTION__);
+		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
@@ -865,7 +865,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -874,7 +874,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 			CBufferStringGrowable<1024> sBuffer;
 
 			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -883,7 +883,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -892,7 +892,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 			CBufferStringGrowable<1024> sBuffer;
 
 			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -901,7 +901,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -909,7 +909,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 			CBufferStringGrowable<1024> sBuffer;
 
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -918,7 +918,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
@@ -926,7 +926,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 			CBufferStringGrowable<1024> sBuffer;
 
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -935,7 +935,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -944,7 +944,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 			CBufferStringGrowable<1024> sBuffer;
 			aConcat.AppendToBuffer(sBuffer, "Entity list");
 			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -953,7 +953,7 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat("%s:\n", __FUNCTION__);
+		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat, 
@@ -963,7 +963,7 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 
 			aConcat.AppendToBuffer(sBuffer, "Entity list");
 			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
-			Detailed(sBuffer);
+			Logger::Detailed(sBuffer);
 		}
 	}
 }
@@ -979,7 +979,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 
 	if(!pEventDataKeys)
 	{
-		WarningFormat("Data keys is empty at \"%s\" event", event->GetName());
+		Logger::WarningFormat("Data keys is empty at \"%s\" event", event->GetName());
 
 		return;
 	}
@@ -990,13 +990,13 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 
 		if(!iMemberCount)
 		{
-			WarningFormat("No members at \"%s\" event", event->GetName());
+			Logger::WarningFormat("No members at \"%s\" event", event->GetName());
 
 			return;
 		}
 
 		{
-			auto aDetails = CreateDetailsScope();
+			auto aDetails = Logger::CreateDetailsScope();
 
 			aDetails.PushFormat("\"%s\":", event->GetName());
 			aDetails.Push("{");
@@ -1016,7 +1016,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 			aDetails.Push("}");
 			aDetails.Send([&](const CUtlString &sMessage)
 			{
-				Detailed(sMessage);
+				Logger::Detailed(sMessage);
 			});
 		}
 	}
@@ -1032,7 +1032,7 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = CreateWarningsScope();
+			auto aWarnings = Logger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1043,7 +1043,7 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
 			{
-				Warning(rgba, sContext);
+				Logger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1069,7 +1069,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = CreateWarningsScope();
+			auto aWarnings = Logger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1080,7 +1080,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
 			{
-				Warning(rgba, sContext);
+				Logger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1106,7 +1106,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	{
 		if(IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = CreateWarningsScope();
+			auto aWarnings = Logger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1117,7 +1117,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([=](Color rgba, const CUtlString &sContext)
 			{
-				Warning(rgba, sContext);
+				Logger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1145,7 +1145,7 @@ bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 		}
 	}
 
-	DetailedFormat("RegisterGameEntitySystem\n");
+	Logger::DetailedFormat("RegisterGameEntitySystem\n");
 
 	if(!RegisterGameEntitySystem(*pGameEntitySystem))
 	{
@@ -1330,7 +1330,7 @@ bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 
 	CUtlString sMessage;
 
-	auto aWarnings = CreateWarningsScope();
+	auto aWarnings = Logger::CreateWarningsScope();
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
@@ -1377,7 +1377,7 @@ bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Warning(sMessage);
+			Logger::Warning(sMessage);
 		});
 	}
 
@@ -1435,7 +1435,7 @@ bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 
 	CUtlString sMessage;
 
-	auto aWarnings = CreateWarningsScope();
+	auto aWarnings = Logger::CreateWarningsScope();
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
@@ -1482,7 +1482,7 @@ bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Warning(sMessage);
+			Logger::Warning(sMessage);
 		});
 	}
 
@@ -1506,7 +1506,7 @@ bool SamplePlugin::ParseGameEvents()
 
 	CUtlString sMessage;
 
-	auto aWarnings = CreateWarningsScope();
+	auto aWarnings = Logger::CreateWarningsScope();
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
@@ -1548,7 +1548,7 @@ bool SamplePlugin::ParseGameEvents()
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Warning(sMessage);
+			Logger::Warning(sMessage);
 		});
 	}
 
@@ -1595,7 +1595,7 @@ bool SamplePlugin::ClearGameEvents()
 
 bool SamplePlugin::HookGameEvents()
 {
-	auto aWarnings = CreateWarningsScope();
+	auto aWarnings = Logger::CreateWarningsScope();
 
 	static const char *pszWarningFormat = "Failed to hook \"%s\" event";
 
@@ -1611,7 +1611,7 @@ bool SamplePlugin::HookGameEvents()
 		}
 
 #ifdef DEBUG
-		DetailedFormat("Hooked \"%s\" event\n", pszEvent);
+		Logger::DetailedFormat("Hooked \"%s\" event\n", pszEvent);
 #endif
 	}
 
@@ -1619,7 +1619,7 @@ bool SamplePlugin::HookGameEvents()
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Warning(sMessage);
+			Logger::Warning(sMessage);
 		});
 	}
 
@@ -1647,7 +1647,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 {
 	if(IsChannelEnabled(LV_DETAILED))
 	{
-		DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
+		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
 	}
 
 	auto aPlayerSlot = aContext.GetPlayerSlot();
@@ -1720,7 +1720,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 							sBuffer.AppendConcat(ARRAYSIZE(pszMessageConcat), pszMessageConcat, NULL);
 						}
 
-						Detailed(sBuffer);
+						Logger::Detailed(sBuffer);
 					}
 
 					Sample::ChatCommandSystem::Handle(aPlayerSlot, bIsSilent, vecArgs);
@@ -1850,7 +1850,7 @@ void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *psz
 		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
 		aConcat.AppendToBuffer(sBuffer, "Cookie", iCookie);
 
-		Detailed(sBuffer);
+		Logger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->ToPB<CSVCMsg_GetCvarValue>();
@@ -1898,7 +1898,7 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 			aConcat.AppendStringToBuffer(sBuffer, "Parameter #4", pszParam4);
 		}
 
-		Detailed(sBuffer);
+		Logger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pSayText2Message->AllocateMessage()->ToPB<CUserMessageSayText2>();
@@ -1929,7 +1929,7 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
 		aConcat.AppendToBuffer(sBuffer, "Parameter", pszParam);
-		Detailed(sBuffer);
+		Logger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pTextMsg->AllocateMessage()->ToPB<CUserMessageTextMsg>();
@@ -1973,12 +1973,12 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 		}
 		else
 		{
-			WarningFormat("%s\n", sMessage);
+			Logger::WarningFormat("%s\n", sMessage);
 		}
 
 		if(!RegisterNetMessages(sMessage, sizeof(sMessage)))
 		{
-			WarningFormat("%s\n", sMessage);
+			Logger::WarningFormat("%s\n", sMessage);
 		}
 	}
 
@@ -2003,7 +2003,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
 
-		Detailed(sMessage);
+		Logger::Detailed(sMessage);
 	}
 }
 
@@ -2031,7 +2031,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 			aConcat.AppendBytesToBuffer(sMessage, "Auth ticket", pAuthTicket, nAuthTicketLength);
 		}
 
-		Detailed(sMessage);
+		Logger::Detailed(sMessage);
 	}
 
 	// Get "cl_language" cvar value from a client.
@@ -2119,7 +2119,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 		DumpServerSideClient(aConcat, sMessage, pClient);
 		DumpDisconnectReason(aConcat, sMessage, eReason);
 
-		Detailed(sMessage);
+		Logger::Detailed(sMessage);
 	}
 }
 
