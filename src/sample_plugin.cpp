@@ -1020,7 +1020,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 
 	if(!pEventDataKeys)
 	{
-		Logger::WarningFormat("Data keys is empty at \"%s\" event", event->GetName());
+		Logger::WarningFormat("Data keys is empty at \"%s\" event\n", event->GetName());
 
 		return;
 	}
@@ -1031,7 +1031,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 
 		if(!iMemberCount)
 		{
-			Logger::WarningFormat("No members at \"%s\" event", event->GetName());
+			Logger::WarningFormat("No members at \"%s\" event\n", event->GetName());
 
 			return;
 		}
