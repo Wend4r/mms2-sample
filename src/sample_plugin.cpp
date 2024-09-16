@@ -1334,8 +1334,6 @@ bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
-	CBufferStringGrowable<1024> sWarningMessage;
-
 	g_pFullFileSystem->FindFileAbsoluteList(vecLangugesFiles, pszLanguagesFiles, pszPathID);
 
 	if(!vecLangugesFiles.Count())
@@ -1439,8 +1437,6 @@ bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
-	CBufferStringGrowable<1024> sWarningMessage;
-
 	g_pFullFileSystem->FindFileAbsoluteList(vecTranslationsFiles, pszTranslationsFiles, pszPathID);
 
 	if(!vecTranslationsFiles.Count())
@@ -1509,8 +1505,6 @@ bool SamplePlugin::ParseGameEvents()
 	auto aWarnings = Logger::CreateWarningsScope();
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
-
-	CBufferStringGrowable<1024> sWarningMessage;
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, SAMPLE_GAME_EVENTS_FILES, pszPathID);
 
