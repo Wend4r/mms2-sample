@@ -139,8 +139,6 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	// Register chat commands.
 	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
-		Logger::Warning("Executing sample command\n");
-
 		static const char s_pszYourArgumentPhrase[] = "Your argument";
 
 		CSingleRecipientFilter aFilter(aSlot);
