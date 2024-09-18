@@ -408,7 +408,7 @@ void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslatio
 		{
 			const auto &aTranslationsPhrase = pTranslations->GetPhrase(iFound);
 
-			if(!aTranslationsPhrase.Find(pszContryCode, paContent) || !aTranslationsPhrase.Find(pszServerContryCode, paContent))
+			if(!aTranslationsPhrase.Find(pszContryCode, paContent) && !aTranslationsPhrase.Find(pszServerContryCode, paContent))
 			{
 				CUtlString sMessage;
 
