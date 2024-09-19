@@ -28,7 +28,7 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("CBaseGameSystemFactory::sm_pFirst"), [&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
 		{
-			m_ppFirstGameSystem = aAddress.RCast<decltype(m_ppFirstGameSystem)>();
+			m_ppFirst = aAddress.RCast<decltype(m_ppFirst)>();
 		});
 
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
@@ -42,10 +42,10 @@ bool Sample::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, KeyV
 
 void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 {
-	m_ppFirstGameSystem = nullptr;
+	m_ppFirst = nullptr;
 }
 
-CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstGameSystemPointer() const
+CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstointer() const
 {
-	return m_ppFirstGameSystem;
+	return m_ppFirst;
 }
