@@ -377,7 +377,7 @@ void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage 
 
 void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
-	struct
+	const struct
 	{
 		const char *pszName;
 		TranslatedPhrase *pTranslated;
@@ -1310,7 +1310,7 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 {
-	struct
+	const struct
 	{
 		const char *pszName;
 		INetworkMessageInternal **ppInternal;
@@ -1330,7 +1330,7 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 		},
 	};
 
-	for(auto &aMessageInitializer : aMessageInitializers)
+	for(const auto &aMessageInitializer : aMessageInitializers)
 	{
 		const char *pszMessageName = aMessageInitializer.pszName;
 
