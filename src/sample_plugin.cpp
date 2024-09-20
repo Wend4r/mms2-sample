@@ -1955,6 +1955,8 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 
 void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
+	Assert(nParamCount);
+
 	auto *pTextMsg = m_pTextMsgMessage;
 
 	if(IsChannelEnabled(LV_DETAILED))
