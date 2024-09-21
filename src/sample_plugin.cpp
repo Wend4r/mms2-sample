@@ -1541,7 +1541,7 @@ void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const
 
 	if(!LoadProvider(error, sizeof(error)))
 	{
-		META_LOG(this, "%s", error);
+		Logger::WarningFormat("%s\n", error);
 	}
 }
 
