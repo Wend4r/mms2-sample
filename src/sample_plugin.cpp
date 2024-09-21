@@ -1955,8 +1955,6 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 
 void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
-	Assert(nParamCount);
-
 	auto *pTextMsg = m_pTextMsgMessage;
 
 	if(IsChannelEnabled(LV_DETAILED))
@@ -1978,16 +1976,21 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 	nParamCount--;
 
 	// Parse incoming parameters.
-	if(nParamCount)
+	if(0 < nParamCount)
 	{
 		va_list aParams;
 
 		va_start(aParams, pszParam);
 
-		for(size_t n = 0; n < nParamCount; n++)
+		size_t n = 0;
+
+		do
 		{
 			pMessage->add_param(va_arg(aParams, const char *));
+
+			n++;
 		}
+		while(n < nParamCount);
 
 		va_end(aParams);
 	}
