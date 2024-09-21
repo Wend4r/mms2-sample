@@ -303,32 +303,6 @@ IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
-SamplePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
- :  m_sName(sInitName), 
-    m_sCountryCode(pszInitCountryCode)
-{
-}
-
-const char *SamplePlugin::CLanguage::GetName() const
-{
-	return m_sName.String();
-}
-
-void SamplePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
-{
-	m_sName = s;
-}
-
-const char *SamplePlugin::CLanguage::GetCountryCode() const
-{
-	return m_sCountryCode;
-}
-
-void SamplePlugin::CLanguage::SetCountryCode(const char *psz)
-{
-	m_sCountryCode = psz;
-}
-
 const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
 {
 	auto iFound = m_mapLanguages.Find(FindLanguageSymbol(psz));
