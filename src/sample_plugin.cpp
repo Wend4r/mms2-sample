@@ -277,7 +277,7 @@ void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
 			*ret = META_IFACE_OK;
 		}
 
-		return this;
+		return static_cast<ISample *>(this);
 	}
 
 	if(ret)
