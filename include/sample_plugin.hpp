@@ -123,6 +123,10 @@ public: // ISample
 		CPlayerData();
 
 	public:
+		void Init();
+		void Destroy();
+
+	public:
 		const ILanguage *GetLanguage() const override;
 		void SetLanguage(const ILanguage *pData) override;
 		bool AddLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
@@ -152,6 +156,7 @@ public: // ISample
 	const ISample::ILanguage *GetServerLanguage() const override;
 	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;
 	IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) override;
+	CPlayerData &GetPlayer(const CPlayerSlot &aSlot);
 
 public: // CBaseGameSystem
 	bool Init() override;

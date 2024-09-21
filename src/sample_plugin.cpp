@@ -335,6 +335,17 @@ SamplePlugin::CPlayerData::CPlayerData()
 {
 }
 
+void SamplePlugin::CPlayerData::Init()
+{
+	m_pLanguage = nullptr;
+	m_aYourArgumentPhrase = {nullptr, nullptr};
+}
+
+void SamplePlugin::CPlayerData::Destroy()
+{
+	Init();
+}
+
 const ISample::ILanguage *SamplePlugin::CPlayerData::GetLanguage() const
 {
 	return m_pLanguage;
@@ -373,7 +384,6 @@ void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage 
 		(*it)(aSlot, pData);
 	}
 }
-
 
 void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
@@ -456,7 +466,16 @@ const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
 
 ISample::IPlayerData *SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
-	return &m_aPlayers[aSlot.Get()];
+	return &GetPlayer(aSlot);
+}
+
+SamplePlugin::CPlayerData &SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
+{
+	int iClient = aSlot.Get();
+
+	Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
+
+	return m_aPlayers[aSlot.Get()];
 }
 
 bool SamplePlugin::Init()
@@ -2076,9 +2095,14 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		Logger::Detailed(sMessage);
 	}
 
+	auto aSlot = pClient->GetPlayerSlot();
+
+	[[maybe_unused]] auto &aPlayer = GetPlayer(aSlot);
+
 	// Get "cl_language" cvar value from a client.
 	{
-		CSingleRecipientFilter aFilter(pClient->GetPlayerSlot());
+
+		CSingleRecipientFilter aFilter(aSlot);
 
 		const char *pszCvarName = SAMPLE_CLIENT_CVAR_NAME_LANGUAGE;
 
@@ -2137,17 +2161,13 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 		return false;
 	}
 
-	auto aPlayerSlot = pClient->GetPlayerSlot();
+	auto aSlot = pClient->GetPlayerSlot();
+
+	auto &aPlayer = GetPlayer(aSlot);
 
 	auto &itLanguage = m_mapLanguages.Element(iLanguageFound);
 
-	int iClient = aPlayerSlot.Get();
-
-	Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
-
-	auto &aPlayer = m_aPlayers[iClient];
-
-	aPlayer.OnLanguageReceived(aPlayerSlot, &itLanguage);
+	aPlayer.OnLanguageReceived(aSlot, &itLanguage);
 
 	{
 		CUtlVector<CUtlString> vecMessages;
@@ -2187,6 +2207,12 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 		Logger::Detailed(sMessage);
 	}
+
+	auto aSlot = pClient->GetPlayerSlot();
+
+	auto &aPlayer = GetPlayer(aSlot);
+
+	aPlayer.Destroy();
 }
 
 CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)
