@@ -151,6 +151,8 @@ public: // Player ones.
 	/**
 	 * @brief Gets a player data.
 	 * 
+	 * @param aSlot         A player slot.
+	 * 
 	 * @return              Returns a player data.
 	 */
 	virtual IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) = 0;
