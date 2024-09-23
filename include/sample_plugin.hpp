@@ -115,22 +115,24 @@ public: // ISample
 		CUtlString m_sCountryCode;
 	}; // CLanguage
 
-	class CPlayerData : public IPlayerData
+	class CPlayer : public IPlayer
 	{
 		friend class SamplePlugin;
 
 	public:
-		CPlayerData();
+		CPlayer();
 
 	public:
 		void Init();
 		void Destroy();
 
-	public:
+	public: // IPlayerLanguageCallbacks
+		bool AddLanguageListener(const LanguageHandleCallback_t &fnCallback) override;
+		bool RemoveLanguageListener(const LanguageHandleCallback_t &fnCallback) override;
+
+	public: // IPlayerLanguage
 		const ILanguage *GetLanguage() const override;
 		void SetLanguage(const ILanguage *pData) override;
-		bool AddLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
-		bool RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback) override;
 
 	public:
 		virtual void OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData);
@@ -151,12 +153,12 @@ public: // ISample
 
 	private:
 		TranslatedPhrase m_aYourArgumentPhrase;
-	}; // CPlayerData
+	}; // CPlayer
 
 	const ISample::ILanguage *GetServerLanguage() const override;
 	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;
-	IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) override;
-	CPlayerData &GetPlayer(const CPlayerSlot &aSlot);
+	IPlayer *GetPlayer(const CPlayerSlot &aSlot) override;
+	CPlayer &GetPlayerData(const CPlayerSlot &aSlot);
 
 public: // CBaseGameSystem
 	bool Init() override;
@@ -297,7 +299,7 @@ private: // Fields.
 	CLanguage m_aServerLanguage;
 	CUtlVector<CLanguage> m_vecLanguages;
 
-	CPlayerData m_aPlayers[ABSOLUTE_PLAYER_LIMIT];
+	CPlayer m_aPlayers[ABSOLUTE_PLAYER_LIMIT];
 }; // SamplePlugin
 
 extern SamplePlugin *g_pSamplePlugin;

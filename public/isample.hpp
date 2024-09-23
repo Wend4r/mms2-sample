@@ -87,20 +87,45 @@ public: // Language ones.
 		virtual const char *GetCountryCode() const = 0;
 	}; // ILanguage
 
-public:
+public: // Player ones.
 	using LanguageHandleCallback_t = std::function<void (CPlayerSlot, ILanguage *)>;
 
-public: // Player ones.
 	/**
-	 * @brief A player data interface.
+	 * @brief A player language interface.
 	**/
-	class IPlayerData
+	class IPlayerLanguageCallbacks
+	{
+		/**
+		 * @brief Add a language listener.
+		 * 
+		 * @param fnCallback    Callback, who will be called when language has received.
+		 * 
+		 * @return              Returns true if this has listenen.
+		 */
+		virtual bool AddLanguageListener(const LanguageHandleCallback_t &fnCallback) = 0;
+
+		/**
+		 * @brief Removes a language listener.
+		 * 
+		 * @param fnCallback    A callback to remove a listenen.
+		 * 
+		 * @return              Returns "true" if this has removed, 
+		 *                      otherwise "false" if not exists.
+		 */
+		virtual bool RemoveLanguageListener(const LanguageHandleCallback_t &fnCallback) = 0;
+	}; // IPlayerLanguageCallbacks
+
+	/**
+	 * @brief A player language interface.
+	**/
+	class IPlayerLanguage : public IPlayerLanguageCallbacks
 	{
 	public:
 		/**
 		 * @brief Gets a language.
 		 * 
-		 * @return              Returns a language, otherwise "nullptr" that not been received.
+		 * @return              Returns a language, 
+		 *                      otherwise "nullptr" that not been received.
 		 */
 		virtual const ILanguage *GetLanguage() const = 0;
 
@@ -110,26 +135,21 @@ public: // Player ones.
 		 * @param pData         A language to set.
 		 */
 		virtual void SetLanguage(const ILanguage *pData) = 0;
+	}; // IPlayerLanguage
 
+	/**
+	 * @brief A player data interface.
+	**/
+	class IPlayer : public IPlayerLanguage
+	{
+	public:
 		/**
-		 * @brief Add a language listener.
+		 * @brief Gets a language.
 		 * 
-		 * @param pfnCallback   Callback, who will be called when language has received.
-		 * 
-		 * @return              Returns true if this has listenen.
+		 * @return              Returns a language, otherwise "nullptr" that not been received.
 		 */
-		virtual bool AddLanguageListener(const LanguageHandleCallback_t *pfnCallback) = 0;
-
-		/**
-		 * @brief Removes a language listener.
-		 * 
-		 * @param pfnCallback   A callback to remove a listenen.
-		 * 
-		 * @return              Returns "true" if this has removed, otherwise
-		 *                      "false" if not exists.
-		 */
-		virtual bool RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback) = 0;
-	}; // IPlayerData
+		virtual const ILanguage *GetLanguage() const = 0;
+	}; // IPlayer
 
 	/**
 	 * @brief Gets a server language.
@@ -155,7 +175,7 @@ public: // Player ones.
 	 * 
 	 * @return              Returns a player data.
 	 */
-	virtual IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) = 0;
+	virtual IPlayer *GetPlayer(const CPlayerSlot &aSlot) = 0;
 }; // ISample
 
 #endif // _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_

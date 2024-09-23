@@ -310,12 +310,12 @@ const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ISample::IPlayerData *SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+ISample::IPlayer *SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
 {
-	return &GetPlayer(aSlot);
+	return &GetPlayerData(aSlot);
 }
 
-SamplePlugin::CPlayerData &SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
+SamplePlugin::CPlayer &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	int iClient = aSlot.Get();
 
@@ -1943,7 +1943,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 	auto aSlot = pClient->GetPlayerSlot();
 
-	[[maybe_unused]] auto &aPlayer = GetPlayer(aSlot);
+	[[maybe_unused]] auto &aPlayer = GetPlayerData(aSlot);
 
 	// Get "cl_language" cvar value from a client.
 	{
@@ -2009,7 +2009,7 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 
 	auto aSlot = pClient->GetPlayerSlot();
 
-	auto &aPlayer = GetPlayer(aSlot);
+	auto &aPlayer = GetPlayerData(aSlot);
 
 	auto &itLanguage = m_mapLanguages.Element(iLanguageFound);
 
@@ -2056,7 +2056,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 	auto aSlot = pClient->GetPlayerSlot();
 
-	auto &aPlayer = GetPlayer(aSlot);
+	auto &aPlayer = GetPlayerData(aSlot);
 
 	aPlayer.Destroy();
 }

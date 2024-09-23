@@ -21,35 +21,27 @@
 
 #include <sample_plugin.hpp>
 
-SamplePlugin::CPlayerData::CPlayerData()
+SamplePlugin::CPlayer::CPlayer()
  :  m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
 
-void SamplePlugin::CPlayerData::Init()
+void SamplePlugin::CPlayer::Init()
 {
 	m_pLanguage = nullptr;
 	m_aYourArgumentPhrase = {nullptr, nullptr};
 }
 
-void SamplePlugin::CPlayerData::Destroy()
+void SamplePlugin::CPlayer::Destroy()
 {
 	Init();
 }
 
-const ISample::ILanguage *SamplePlugin::CPlayerData::GetLanguage() const
+bool SamplePlugin::CPlayer::AddLanguageListener(const LanguageHandleCallback_t &fnCallback)
 {
-	return m_pLanguage;
-}
+	const auto *pfnCallback = &fnCallback;
 
-void SamplePlugin::CPlayerData::SetLanguage(const ILanguage *pData)
-{
-	m_pLanguage = pData;
-}
-
-bool SamplePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
-{
 	int iFound = m_vecLanguageCallbacks.Find(pfnCallback);
 
 	bool bIsExists = m_vecLanguageCallbacks.IsValidIndex(iFound);
@@ -62,12 +54,24 @@ bool SamplePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback
 	return bIsExists;
 }
 
-bool SamplePlugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+bool SamplePlugin::CPlayer::RemoveLanguageListener(const LanguageHandleCallback_t &fnCallback)
 {
+	const auto *pfnCallback = &fnCallback;
+
 	return m_vecLanguageCallbacks.FindAndRemove(pfnCallback);
 }
 
-void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
+const ISample::ILanguage *SamplePlugin::CPlayer::GetLanguage() const
+{
+	return m_pLanguage;
+}
+
+void SamplePlugin::CPlayer::SetLanguage(const ILanguage *pData)
+{
+	m_pLanguage = pData;
+}
+
+void SamplePlugin::CPlayer::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
 {
 	SetLanguage(pData);
 
@@ -77,7 +81,7 @@ void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage 
 	}
 }
 
-void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
+void SamplePlugin::CPlayer::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
 	const struct
 	{
@@ -139,7 +143,7 @@ void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslatio
 	}
 }
 
-const SamplePlugin::CPlayerData::TranslatedPhrase &SamplePlugin::CPlayerData::GetYourArgumentPhrase() const
+const SamplePlugin::CPlayer::TranslatedPhrase &SamplePlugin::CPlayer::GetYourArgumentPhrase() const
 {
 	return m_aYourArgumentPhrase;
 }
