@@ -102,11 +102,11 @@ bool Sample::Provider::Destroy(GameData::CBufferStringVector &vecMessages)
 
 const DynLibUtils::CModule *Sample::Provider::FindLibrary(const char *pszName) const
 {
-	auto iFoundIndex = m_mapLibraries.Find(FindSymbol(pszName));
+	auto iFound = m_mapLibraries.Find(FindSymbol(pszName));
 
-	Assert(IS_VALID_GAMEDATA_INDEX(iFoundIndex, m_mapLibraries));
+	Assert(m_mapLibraries.IsValidIndex(iFound));
 
-	return m_mapLibraries.Element(iFoundIndex);
+	return m_mapLibraries.Element(iFound);
 }
 
 CUtlSymbolLarge Sample::Provider::GetSymbol(const char *pszText)
