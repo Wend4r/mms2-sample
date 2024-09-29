@@ -22,7 +22,6 @@
 
 			"generator": "Visual Studio 17 2022",
 			"description": "Build using Visual Studio generator",
-			"condition": null,
 			"hidden": true
 		},
 
