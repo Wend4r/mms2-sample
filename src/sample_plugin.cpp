@@ -1945,6 +1945,11 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		Logger::Detailed(sMessage);
 	}
 
+	if(!pClient)
+	{
+		return;
+	}
+
 	auto aSlot = pClient->GetPlayerSlot();
 
 	[[maybe_unused]] auto &aPlayer = GetPlayerData(aSlot);
