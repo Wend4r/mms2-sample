@@ -35,6 +35,14 @@ set(SOURCE_SAMPLE_DIR "${SOURCE_DIR}/sample")
 set(SOURCE_SAMPLE_PROVIDER_DIR "${SOURCE_SAMPLE_DIR}/provider")
 set(SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR "${SOURCE_SAMPLE_PROVIDER_DIR}/gamedata")
 
+set(SOURCESDK_PROTOS
+	netmessages
+	network_connection
+	networkbasetypes
+	networksystem_protomessages
+	usermessages
+)
+
 function(set_or_external_dir VAR_NAME DEFAULT_DIR)
 	if(${VAR_NAME})
 		file(TO_CMAKE_PATH "${${VAR_NAME}}" ${VAR_NAME})
