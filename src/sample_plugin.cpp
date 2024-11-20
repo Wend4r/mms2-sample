@@ -1731,6 +1731,7 @@ void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBuffer
 	aConcat.AppendToBuffer(sOutput, "Is fake", pClient->IsFakeClient());
 	aConcat.AppendToBuffer(sOutput, "Address", pClient->GetRemoteAddress()->ToString());
 	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient());
+	aConcat.AppendToBuffer(sOutput, "Is fully authenticated", pClient->IsFullyAuthenticated());
 }
 
 void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
