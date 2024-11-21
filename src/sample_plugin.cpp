@@ -131,7 +131,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
-	Assert(ParseGameEvents());
+	ParseGameEvents();
 
 	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &SamplePlugin::OnDispatchConCommandHook), false);
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
@@ -198,11 +198,11 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
-	Assert(UnhookGameEvents());
+	UnhookGameEvents();
 
-	Assert(ClearGameEvents());
-	Assert(ClearLanguages());
-	Assert(ClearTranslations());
+	ClearGameEvents();
+	ClearLanguages();
+	ClearTranslations();
 
 	if(!UnloadProvider(error, maxlen))
 	{
@@ -1877,7 +1877,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 		if(RegisterSource2Server(sMessage, sizeof(sMessage)))
 		{
-			Assert(HookGameEvents());
+			HookGameEvents();
 		}
 		else
 		{
