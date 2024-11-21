@@ -180,6 +180,8 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		}
 	}
 
+	ismm->AddListener(static_cast<ISmmPlugin *>(this), static_cast<IMetamodListener *>(this));
+
 	MessageFormat("%s started!\n", GetName());
 
 	return true;
