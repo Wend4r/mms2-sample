@@ -1127,18 +1127,29 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 
 			if(pDispatcher)
 			{
-				auto *funcListeners = pDispatcher->m_funcListeners;
+				auto *pfuncListeners = pDispatcher->m_funcListeners;
 
-				Assert(funcListeners);
+				Assert(pfuncListeners);
 
-				for(auto &vecListeners : *funcListeners)
+				auto &funcListeners = *pfuncListeners;
+
+				FOR_EACH_VEC(funcListeners, i)
 				{
-					FOR_EACH_VEC(vecListeners, i)
+					auto &vecListeners = funcListeners[i];
+
+					FOR_EACH_VEC(vecListeners, j)
 					{
-						if(pGameSystem == vecListeners[i])
+						if(pGameSystem == vecListeners[j])
 						{
-							vecListeners.FastRemove(i);
+							vecListeners.FastRemove(j);
+
+							break;
 						}
+					}
+
+					if(!vecListeners.Count())
+					{
+						funcListeners.FastRemove(i);
 					}
 				}
 			}
