@@ -288,7 +288,7 @@ private: // Language (hash)map.
 	CUtlMap<CUtlSymbolLarge, CLanguage> m_mapLanguages;
 
 private: // Fields.
-	IGameSystemFactory *m_pFactory = NULL;
+	CGameSystemStaticFactory<SamplePlugin> *m_pFactory = NULL;
 
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;

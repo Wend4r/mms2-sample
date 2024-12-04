@@ -1116,6 +1116,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	{
 		m_pFactory->Shutdown();
 		m_pFactory->DestroyGameSystem(this);
+		m_pFactory->Destroy();
 	}
 
 	if(!UnregisterFirstGameSystem())
