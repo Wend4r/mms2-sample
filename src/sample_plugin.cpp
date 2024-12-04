@@ -292,7 +292,7 @@ void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
 
 CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer() const
 {
-	return reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
+	return reinterpret_cast<CGameEntitySystem **>(reinterpret_cast<uintptr_t>(g_pGameResourceServiceServer) + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
 }
 
 CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
