@@ -125,7 +125,7 @@ bool DestoryGlobals(char *error, size_t maxlen)
 	g_pGameResourceServiceServer = NULL;
 	g_pGameEventSystem = NULL;
 	g_pNetworkMessages = NULL;
-	g_pCVar = NULL;
+	// g_pCVar = NULL; // Save it to destroy ConVars.
 	g_pFullFileSystem = NULL;
 	g_pSource2Server = NULL;
 	g_pNetworkServerService = NULL;
