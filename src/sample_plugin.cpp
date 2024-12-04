@@ -1134,16 +1134,15 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 
 				auto &funcListeners = *pfuncListeners;
 
-				FOR_EACH_VEC(funcListeners, i)
+				FOR_EACH_VEC_BACK(funcListeners, i)
 				{
 					auto &vecListeners = funcListeners[i];
 
-					FOR_EACH_VEC(vecListeners, j)
+					FOR_EACH_VEC_BACK(vecListeners, j)
 					{
 						if(pGameSystem == vecListeners[j])
 						{
 							vecListeners.FastRemove(j);
-							j--;
 
 							break;
 						}
@@ -1152,7 +1151,6 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 					if(!vecListeners.Count())
 					{
 						funcListeners.FastRemove(i);
-						i--;
 					}
 				}
 			}
