@@ -43,6 +43,8 @@
 
 class CBaseGameSystemFactory;
 class CGameEventManager;
+class CGameSystemEventDispatcher;
+
 namespace Sample
 {
 	class Provider : public IGameData
@@ -108,6 +110,7 @@ namespace Sample
 
 			public:
 				CBaseGameSystemFactory **GetFirstPointer() const;
+				CGameSystemEventDispatcher **GetEventDispatcher() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
@@ -115,6 +118,7 @@ namespace Sample
 
 			private: // Addresses.
 				CBaseGameSystemFactory **m_ppFirst = nullptr;
+				CGameSystemEventDispatcher **m_ppEventDispatcher = nullptr;
 			}; // CGameSystem
 
 			class CSource2Server

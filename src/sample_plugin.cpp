@@ -1115,6 +1115,35 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	if(m_pFactory)
 	{
 		m_pFactory->Shutdown();
+
+		{
+			const auto *pGameSystem = m_pFactory->GetStaticGameSystem();
+
+			auto **ppDispatcher = GetGameDataStorage().GetGameSystem().GetEventDispatcher();
+
+			Assert(ppDispatcher);
+
+			auto *pDispatcher = *ppDispatcher;
+
+			if(pDispatcher)
+			{
+				auto *funcListeners = pDispatcher->m_funcListeners;
+
+				Assert(funcListeners);
+
+				for(auto &vecListeners : *funcListeners)
+				{
+					FOR_EACH_VEC(vecListeners, i)
+					{
+						if(pGameSystem == vecListeners[i])
+						{
+							vecListeners.FastRemove(i);
+						}
+					}
+				}
+			}
+		}
+
 		m_pFactory->DestroyGameSystem(this);
 		m_pFactory->Destroy();
 	}

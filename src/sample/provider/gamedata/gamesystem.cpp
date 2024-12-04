@@ -31,6 +31,11 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 			m_ppFirst = aAddress.RCast<decltype(m_ppFirst)>();
 		});
 
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&IGameSystem::sm_pEventDispatcher"), [&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		{
+			m_ppEventDispatcher = aAddress.RCast<decltype(m_ppEventDispatcher)>();
+		});
+
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
 }
@@ -43,9 +48,15 @@ bool Sample::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, KeyV
 void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 {
 	m_ppFirst = nullptr;
+	m_ppEventDispatcher = nullptr;
 }
 
 CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstPointer() const
 {
 	return m_ppFirst;
+}
+
+CGameSystemEventDispatcher **Sample::Provider::GameDataStorage::CGameSystem::GetEventDispatcher() const
+{
+	return m_ppEventDispatcher;
 }
