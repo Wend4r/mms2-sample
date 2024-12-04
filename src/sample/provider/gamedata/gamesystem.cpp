@@ -45,7 +45,7 @@ void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 	m_ppFirst = nullptr;
 }
 
-CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstointer() const
+CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstPointer() const
 {
 	return m_ppFirst;
 }

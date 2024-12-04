@@ -297,7 +297,7 @@ CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer() const
 
 CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
 {
-	return GetGameDataStorage().GetGameSystem().GetFirstointer();
+	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
 IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
@@ -1083,7 +1083,7 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 
 bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
-	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstointer();
+	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstPointer();
 
 	if(!ppFactory)
 	{
