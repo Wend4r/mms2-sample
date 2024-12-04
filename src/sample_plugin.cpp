@@ -1105,7 +1105,7 @@ bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 		return false;
 	}
 
-	m_pFactory = new CGameSystemStaticFactory<SamplePlugin>(GetName(), this);
+	m_pFactory = new CGameSystemStaticFactory<SamplePlugin>(GetName(), static_cast<SamplePlugin *>(this), &g_pSamplePlugin);
 
 	return true;
 }
@@ -1116,6 +1116,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	{
 		m_pFactory->Shutdown();
 
+		// Clean up smart dispatcher listener callbacks.
 		{
 			const auto *pGameSystem = m_pFactory->GetStaticGameSystem();
 
@@ -1142,6 +1143,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 						if(pGameSystem == vecListeners[j])
 						{
 							vecListeners.FastRemove(j);
+							j--;
 
 							break;
 						}
@@ -1150,6 +1152,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 					if(!vecListeners.Count())
 					{
 						funcListeners.FastRemove(i);
+						i--;
 					}
 				}
 			}
