@@ -31,7 +31,7 @@ sudo apt-get install cmake ninja-build
 git clone --recursive https://github.com/Wend4r/mms2-sample.git Sample
 ```
 
-### 3. Intialize environment
+### 3. Intialize the environment
 
 #### Windows
 > [!IMPORTANT]
@@ -61,3 +61,4 @@ cmake --build --preset Debug --parallel
 
 * Once the plugin is compiled the files would be packaged and placed in ``build/{OS}/{PRESET}`` folder.
 * Be aware that plugins get loaded either by corresponding ``.vdf`` files in the metamod folder, or by listing them in ``addons/metamod/metaplugins.ini`` file.
+* Copy the following folders into the plugin folder: `configs`, `gamedata` and `translations`.
