@@ -17,19 +17,14 @@
 
 ### 1. Install dependencies
 
-<details>
-	<summary>Windows</summary>
+#### Windows
+> [!NOTE]
+> Setting up [CMake tools with Visual Studio Installer](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#installation)
 
-	Install [CMake tools with Visual Studio Installer](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#installation)
-</details>
-
-<details>
-	<summary>Linux (Ubuntu/Debian)</summary>
-
-	```sh
-	sudo apt-get install cmake ninja-build
-	```
-</details>
+#### Linux (Ubuntu/Debian)
+```sh
+sudo apt-get install cmake ninja-build
+```
 
 ### 2. Clone the repository
 ```
@@ -37,24 +32,22 @@ git clone --recursive https://github.com/Wend4r/mms2-sample.git Sample
 ```
 
 ### 3. Intialize environment
-<details>
-	<summary>Windows</summary>
 
-	```bat
-	cd .\Sample
+#### Windows
+> [!IMPORTANT]
+> To configure your system for development, you need to add the following path to the `Path` environment variable: `%PROGRAMFILES%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build`
 
-	REM C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat
-	vcvarsall x64
-	```
-</details>
+```bat
+cd .\Sample
 
-<details>
-	<summary>Linux</summary>
+REM C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat
+vcvarsall x64
+```
 
-	```sh
-	cd Sample
-	```
-</details>
+#### Linux
+```
+cd Sample
+```
 
 ### 4. Configure
 ```
