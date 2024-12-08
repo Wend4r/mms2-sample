@@ -96,7 +96,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		return false;
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringGrowable<1024> sMessage;
 
@@ -328,7 +328,7 @@ SamplePlugin::CPlayer &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 
 bool SamplePlugin::Init()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -338,7 +338,7 @@ bool SamplePlugin::Init()
 
 void SamplePlugin::PostInit()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -346,7 +346,7 @@ void SamplePlugin::PostInit()
 
 void SamplePlugin::Shutdown()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -354,7 +354,7 @@ void SamplePlugin::Shutdown()
 
 GS_EVENT_MEMBER(SamplePlugin, GameInit)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
@@ -385,7 +385,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 
 GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -393,7 +393,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
 
 GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -423,7 +423,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 
 GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -431,7 +431,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
 
 GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -448,7 +448,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 
 GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -478,7 +478,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -486,7 +486,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
 
 GS_EVENT_MEMBER(SamplePlugin, Disconnect)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -494,7 +494,7 @@ GS_EVENT_MEMBER(SamplePlugin, Disconnect)
 
 GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -514,7 +514,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 
 GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -538,7 +538,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 
 GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -557,7 +557,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 
 GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -576,7 +576,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 
 GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -598,7 +598,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 
 GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -620,7 +620,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 
 GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -639,7 +639,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 
 GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -658,7 +658,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -666,7 +666,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -683,7 +683,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -701,7 +701,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -720,7 +720,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -728,7 +728,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -745,7 +745,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -763,7 +763,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -771,7 +771,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 
 GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -789,7 +789,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 
 GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -807,7 +807,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 
 GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -824,7 +824,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 
 GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -841,7 +841,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 
 GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -859,7 +859,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 
 GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s:\n", __FUNCTION__);
 
@@ -892,7 +892,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 		return;
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		int iMemberCount = pEventDataKeys->GetMemberCount();
 
@@ -938,7 +938,7 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -975,7 +975,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -1012,7 +1012,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -1591,7 +1591,7 @@ void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const
 
 void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
 	}
@@ -1647,7 +1647,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 						sArg.Trim(' ');
 					}
 
-					if(IsChannelEnabled(LV_DETAILED))
+					if(Logger::IsChannelEnabled(LV_DETAILED))
 					{
 						const auto &aConcat = s_aEmbedConcat, 
 						           &aConcat2 = s_aEmbed2Concat;
@@ -1787,7 +1787,7 @@ void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *psz
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1814,7 +1814,7 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 {
 	auto *pSayText2Message = m_pSayText2Message;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1867,7 +1867,7 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 {
 	auto *pTextMsg = m_pTextMsgMessage;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1934,7 +1934,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 		}
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1967,7 +1967,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -2098,7 +2098,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringGrowable<1024> sMessage;
 
