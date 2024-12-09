@@ -81,7 +81,7 @@ public: // Language ones.
 		 * @return              Returns a country code of a language.
 		 */
 		virtual const char *GetCountryCode() const = 0;
-	}; // ILanguage
+	}; // ISample::ILanguage
 
 public: // Player ones.
 	class IPlayerLanguageListener
@@ -94,7 +94,7 @@ public: // Player ones.
 		 * @param pLanguage     A language pointer, who changed.
 		 */
 		virtual void OnPlayerLanguageChanged(CPlayerSlot aSlot, const ILanguage *pLanguage) = 0;
-	}; // IPlayerLanguageListener
+	}; // ISample::IPlayerLanguageListener
 
 	/**
 	 * @brief A player language interface.
@@ -119,7 +119,7 @@ public: // Player ones.
 		 *                      otherwise "false" if not exists.
 		 */
 		virtual bool RemoveLanguageListener(IPlayerLanguageListener *pListener) = 0;
-	}; // IPlayerLanguageCallbacks
+	}; // ISample::IPlayerLanguageCallbacks
 
 	/**
 	 * @brief A player language interface.
@@ -141,7 +141,7 @@ public: // Player ones.
 		 * @param pData         A language to set.
 		 */
 		virtual void SetLanguage(const ILanguage *pData) = 0;
-	}; // IPlayerLanguage
+	}; // ISample::IPlayerLanguage
 
 	/**
 	 * @brief A player data interface.
@@ -155,7 +155,7 @@ public: // Player ones.
 		 * @return              Returns a language, otherwise "nullptr" that not been received.
 		 */
 		virtual const ILanguage *GetLanguage() const = 0;
-	}; // IPlayer
+	}; // ISample::IPlayer
 
 	/**
 	 * @brief Gets a server language.

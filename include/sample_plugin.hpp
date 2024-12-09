@@ -113,7 +113,7 @@ public: // ISample
 	private:
 		CUtlSymbolLarge m_sName;
 		CUtlString m_sCountryCode;
-	}; // CLanguage
+	}; // SamplePlugin::CLanguage
 
 	class CPlayer : public IPlayer
 	{
@@ -126,11 +126,11 @@ public: // ISample
 		void Init();
 		void Destroy();
 
-	public: // IPlayerLanguageCallbacks
+	public: // ISample::IPlayerLanguageCallbacks
 		bool AddLanguageListener(IPlayerLanguageListener *pListener) override;
 		bool RemoveLanguageListener(IPlayerLanguageListener *pListener) override;
 
-	public: // IPlayerLanguage
+	public: // ISample::IPlayerLanguage
 		const ILanguage *GetLanguage() const override;
 		void SetLanguage(const ILanguage *pData) override;
 
@@ -154,7 +154,7 @@ public: // ISample
 
 	private:
 		TranslatedPhrase m_aYourArgumentPhrase;
-	}; // CPlayer
+	}; // SamplePlugin::CPlayer
 
 	const ISample::ILanguage *GetServerLanguage() const override;
 	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;

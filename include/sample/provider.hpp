@@ -97,7 +97,7 @@ namespace Sample
 
 			private: // Offsets.
 				ptrdiff_t m_nEntitySystemOffset = -1;
-			}; // CGameResource
+			}; // Sample::Provider::GameDataStorage::CGameResource
 
 			class CGameSystem
 			{
@@ -119,7 +119,7 @@ namespace Sample
 			private: // Addresses.
 				CBaseGameSystemFactory **m_ppFirst = nullptr;
 				CGameSystemEventDispatcher **m_ppEventDispatcher = nullptr;
-			}; // CGameSystem
+			}; // Sample::Provider::CGameSystem
 
 			class CSource2Server
 			{
@@ -139,7 +139,7 @@ namespace Sample
 
 			private: // Addresses.
 				CGameEventManager **m_ppGameEventManager = nullptr;
-			}; // CSource2Server
+			}; // Sample::Provider::GameDataStorage::CSource2Server
 
 			const CGameResource &GetGameResource() const;
 			const CGameSystem &GetGameSystem() const;
@@ -149,7 +149,7 @@ namespace Sample
 			CGameResource m_aGameResource;
 			CGameSystem m_aGameSystem;
 			CSource2Server m_aSource2Server;
-		}; // GameDataStorage
+		}; // Sample::Provider::GameDataStorage
 
 		const GameDataStorage &GetGameDataStorage() const;
 
