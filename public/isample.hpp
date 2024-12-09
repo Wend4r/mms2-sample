@@ -156,7 +156,7 @@ public: // Player ones.
 		 * @return              A server server side client pointer.
 		 */
 		virtual CServerSideClient *GetServerSideClient() = 0;
-	}; // ISample::IPlayer
+	}; // ISample::IPlayerBase
 
 	/**
 	 * @brief Gets a server language.
