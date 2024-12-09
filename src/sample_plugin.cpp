@@ -312,12 +312,12 @@ const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ISample::IPlayer *SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
+ISample::IPlayerBase *SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
 {
 	return &GetPlayerData(aSlot);
 }
 
-SamplePlugin::CPlayer &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+SamplePlugin::CPlayerBase &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	int iClient = aSlot.Get();
 
