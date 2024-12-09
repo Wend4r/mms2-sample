@@ -164,7 +164,7 @@ public: // ISample
 
 	const ISample::ILanguage *GetServerLanguage() const override;
 	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;
-	IPlayerBase *GetPlayer(const CPlayerSlot &aSlot) override;
+	IPlayerBase *GetPlayerBase(const CPlayerSlot &aSlot) override;
 	CPlayerBase &GetPlayerData(const CPlayerSlot &aSlot);
 
 public: // CBaseGameSystem

@@ -312,7 +312,7 @@ const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ISample::IPlayerBase *SamplePlugin::GetPlayer(const CPlayerSlot &aSlot)
+ISample::IPlayerBase *SamplePlugin::GetPlayerBase(const CPlayerSlot &aSlot)
 {
 	return &GetPlayerData(aSlot);
 }

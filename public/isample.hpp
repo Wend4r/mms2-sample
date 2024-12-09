@@ -182,7 +182,7 @@ public: // Player ones.
 	 * 
 	 * @return              Returns a player data.
 	 */
-	virtual IPlayerBase *GetPlayer(const CPlayerSlot &aSlot) = 0;
+	virtual IPlayerBase *GetPlayerBase(const CPlayerSlot &aSlot) = 0;
 }; // ISample
 
 #endif // _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_
