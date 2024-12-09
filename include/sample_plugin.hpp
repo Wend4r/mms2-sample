@@ -148,7 +148,6 @@ public: // ISample
 		const TranslatedPhrase &GetYourArgumentPhrase() const;
 
 	private:
-		CPlayerSlot m_aSlot;
 		const ILanguage *m_pLanguage;
 		CUtlVector<IPlayerLanguageListener *> m_vecLanguageCallbacks;
 

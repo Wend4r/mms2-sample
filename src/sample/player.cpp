@@ -22,8 +22,7 @@
 #include <sample_plugin.hpp>
 
 SamplePlugin::CPlayer::CPlayer()
- :  m_aSlot(-1),
-    m_pLanguage(nullptr), 
+ :  m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
