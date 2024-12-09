@@ -149,12 +149,6 @@ public: // Player ones.
 	class IPlayer : public IPlayerLanguage
 	{
 	public:
-		/**
-		 * @brief Gets a language.
-		 * 
-		 * @return              Returns a language, otherwise "nullptr" that not been received.
-		 */
-		virtual const ILanguage *GetLanguage() const = 0;
 	}; // ISample::IPlayer
 
 	/**
