@@ -2113,9 +2113,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 	auto aSlot = pClient->GetPlayerSlot();
 
-	auto &aPlayer = GetPlayerData(aSlot);
-
-	aPlayer.Destroy();
+	[[maybe_unused]] auto &aPlayer = GetPlayerData(aSlot);
 }
 
 CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)
