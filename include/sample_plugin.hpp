@@ -127,15 +127,15 @@ public: // ISample
 		void Destroy();
 
 	public: // IPlayerLanguageCallbacks
-		bool AddLanguageListener(const LanguageHandleCallback_t &fnCallback) override;
-		bool RemoveLanguageListener(const LanguageHandleCallback_t &fnCallback) override;
+		bool AddLanguageListener(IPlayerLanguageListener *pListener) override;
+		bool RemoveLanguageListener(IPlayerLanguageListener *pListener) override;
 
 	public: // IPlayerLanguage
 		const ILanguage *GetLanguage() const override;
 		void SetLanguage(const ILanguage *pData) override;
 
 	public:
-		virtual void OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData);
+		virtual void OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData);
 
 	public:
 		struct TranslatedPhrase
@@ -148,8 +148,9 @@ public: // ISample
 		const TranslatedPhrase &GetYourArgumentPhrase() const;
 
 	private:
+		CPlayerSlot m_aSlot;
 		const ILanguage *m_pLanguage;
-		CUtlVector<const LanguageHandleCallback_t *> m_vecLanguageCallbacks;
+		CUtlVector<IPlayerLanguageListener *> m_vecLanguageCallbacks;
 
 	private:
 		TranslatedPhrase m_aYourArgumentPhrase;

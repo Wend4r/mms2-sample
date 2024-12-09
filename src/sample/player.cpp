@@ -22,7 +22,8 @@
 #include <sample_plugin.hpp>
 
 SamplePlugin::CPlayer::CPlayer()
- :  m_pLanguage(nullptr), 
+ :  m_aSlot(-1),
+    m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
@@ -38,27 +39,23 @@ void SamplePlugin::CPlayer::Destroy()
 	Init();
 }
 
-bool SamplePlugin::CPlayer::AddLanguageListener(const LanguageHandleCallback_t &fnCallback)
+bool SamplePlugin::CPlayer::AddLanguageListener(IPlayerLanguageListener *pListener)
 {
-	const auto *pfnCallback = &fnCallback;
-
-	int iFound = m_vecLanguageCallbacks.Find(pfnCallback);
+	int iFound = m_vecLanguageCallbacks.Find(pListener);
 
 	bool bIsExists = m_vecLanguageCallbacks.IsValidIndex(iFound);
 
 	if(bIsExists)
 	{
-		m_vecLanguageCallbacks.AddToTail(pfnCallback);
+		m_vecLanguageCallbacks.AddToTail(pListener);
 	}
 
 	return bIsExists;
 }
 
-bool SamplePlugin::CPlayer::RemoveLanguageListener(const LanguageHandleCallback_t &fnCallback)
+bool SamplePlugin::CPlayer::RemoveLanguageListener(IPlayerLanguageListener *pListener)
 {
-	const auto *pfnCallback = &fnCallback;
-
-	return m_vecLanguageCallbacks.FindAndRemove(pfnCallback);
+	return m_vecLanguageCallbacks.FindAndRemove(pListener);
 }
 
 const ISample::ILanguage *SamplePlugin::CPlayer::GetLanguage() const
@@ -71,13 +68,13 @@ void SamplePlugin::CPlayer::SetLanguage(const ILanguage *pData)
 	m_pLanguage = pData;
 }
 
-void SamplePlugin::CPlayer::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
+void SamplePlugin::CPlayer::OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData)
 {
 	SetLanguage(pData);
 
 	for(const auto &it : m_vecLanguageCallbacks)
 	{
-		(*it)(aSlot, pData);
+		it->OnPlayerLanguageChanged(aSlot, pData);
 	}
 }
 

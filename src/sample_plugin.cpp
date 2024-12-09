@@ -2070,7 +2070,7 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 
 	auto &itLanguage = m_mapLanguages.Element(iLanguageFound);
 
-	aPlayer.OnLanguageReceived(aSlot, &itLanguage);
+	aPlayer.OnLanguageChanged(aSlot, &itLanguage);
 
 	{
 		CUtlVector<CUtlString> vecMessages;
