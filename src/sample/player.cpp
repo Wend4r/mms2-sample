@@ -27,17 +27,6 @@ SamplePlugin::CPlayer::CPlayer()
 {
 }
 
-void SamplePlugin::CPlayer::Init()
-{
-	m_pLanguage = nullptr;
-	m_aYourArgumentPhrase = {nullptr, nullptr};
-}
-
-void SamplePlugin::CPlayer::Destroy()
-{
-	Init();
-}
-
 bool SamplePlugin::CPlayer::AddLanguageListener(IPlayerLanguageListener *pListener)
 {
 	int iFound = m_vecLanguageCallbacks.Find(pListener);

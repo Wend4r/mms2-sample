@@ -122,10 +122,6 @@ public: // ISample
 	public:
 		CPlayer();
 
-	public:
-		void Init();
-		void Destroy();
-
 	public: // ISample::IPlayerLanguageCallbacks
 		bool AddLanguageListener(IPlayerLanguageListener *pListener) override;
 		bool RemoveLanguageListener(IPlayerLanguageListener *pListener) override;
