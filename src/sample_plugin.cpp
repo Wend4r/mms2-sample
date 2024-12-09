@@ -1964,7 +1964,19 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 	if(pClient)
 	{
 		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
+
+		if(pClient->IsFakeClient())
+		{
+			return;
+		}
+
 		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+	}
+	else
+	{
+		AssertMsg(0, "Failed to get a server side client pointer\n");
+
+		return;
 	}
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
@@ -1998,9 +2010,11 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		return;
 	}
 
+	auto *pPlayer = reinterpret_cast<CServerSideClient *>(pClient);
+
 	auto aSlot = pClient->GetPlayerSlot();
 
-	[[maybe_unused]] auto &aPlayer = GetPlayerData(aSlot);
+	auto &aPlayer = GetPlayerData(aSlot);
 
 	// Get "cl_language" cvar value from a client.
 	{
@@ -2032,6 +2046,8 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		SendCvarValueQuery(&aFilter, pszCvarName, iCookie);
 	}
+
+	aPlayer.OnConnected(pPlayer);
 }
 
 bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
@@ -2096,6 +2112,12 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
 {
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
+
+	if(pClient->IsFakeClient())
+	{
+		return;
+	}
+
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
@@ -2111,9 +2133,13 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 		Logger::Detailed(sMessage);
 	}
 
+	auto *pPlayer = reinterpret_cast<CServerSideClient *>(pClient);
+
 	auto aSlot = pClient->GetPlayerSlot();
 
-	[[maybe_unused]] auto &aPlayer = GetPlayerData(aSlot);
+	auto &aPlayer = GetPlayerData(aSlot);
+
+	aPlayer.OnDisconnected(pPlayer, eReason);
 }
 
 CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)

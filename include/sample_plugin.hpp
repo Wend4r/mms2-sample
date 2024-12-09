@@ -47,6 +47,7 @@
 #	include <tier0/strtools.h>
 #	include <tier1/convar.h>
 #	include <tier1/utlvector.h>
+#	include <network_connection.pb.h>
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
@@ -130,6 +131,13 @@ public: // ISample
 		const ILanguage *GetLanguage() const override;
 		void SetLanguage(const ILanguage *pData) override;
 
+	public: // IMenuSystem::IPlayer
+		CServerSideClient *GetServerSideClient() override;
+
+	public:
+		virtual void OnConnected(CServerSideClient *pClient);
+		virtual void OnDisconnected(CServerSideClient *pClient, ENetworkDisconnectionReason eReason);
+
 	public:
 		virtual void OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData);
 
@@ -142,6 +150,9 @@ public: // ISample
 
 		void TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages);
 		const TranslatedPhrase &GetYourArgumentPhrase() const;
+
+	private:
+		CServerSideClient *m_pServerSideClient;
 
 	private:
 		const ILanguage *m_pLanguage;

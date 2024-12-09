@@ -21,8 +21,11 @@
 
 #include <sample_plugin.hpp>
 
+#include <serversideclient.h>
+
 SamplePlugin::CPlayer::CPlayer()
- :  m_pLanguage(nullptr), 
+ :  m_pServerSideClient(nullptr), 
+    m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
@@ -54,6 +57,23 @@ const ISample::ILanguage *SamplePlugin::CPlayer::GetLanguage() const
 void SamplePlugin::CPlayer::SetLanguage(const ILanguage *pData)
 {
 	m_pLanguage = pData;
+}
+
+CServerSideClient *SamplePlugin::CPlayer::GetServerSideClient()
+{
+	return m_pServerSideClient;
+}
+
+void SamplePlugin::CPlayer::OnConnected(CServerSideClient *pClient)
+{
+	m_pServerSideClient = pClient;
+}
+
+void SamplePlugin::CPlayer::OnDisconnected(CServerSideClient *pClient, ENetworkDisconnectionReason eReason)
+{
+	m_pServerSideClient = nullptr;
+	m_pLanguage = nullptr;
+	m_aYourArgumentPhrase = {nullptr, nullptr};
 }
 
 void SamplePlugin::CPlayer::OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData)

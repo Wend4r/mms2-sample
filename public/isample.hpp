@@ -31,6 +31,7 @@
 
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
+class CServerSideClient;
 class IGameEventManager2;
 
 /**
@@ -149,6 +150,12 @@ public: // Player ones.
 	class IPlayer : public IPlayerLanguage
 	{
 	public:
+		/**
+		 * @brief Gets a server side client of the player.
+		 * 
+		 * @return              A server server side client pointer.
+		 */
+		virtual CServerSideClient *GetServerSideClient() = 0;
 	}; // ISample::IPlayer
 
 	/**
