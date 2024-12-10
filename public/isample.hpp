@@ -102,6 +102,7 @@ public: // Player ones.
 	**/
 	class IPlayerLanguageCallbacks
 	{
+	public:
 		/**
 		 * @brief Add a language listener.
 		 * 
