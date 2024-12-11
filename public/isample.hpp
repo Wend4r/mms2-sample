@@ -146,11 +146,18 @@ public: // Player ones.
 	}; // ISample::IPlayerLanguage
 
 	/**
-	 * @brief A player data interface.
+	 * @brief A player base interface.
 	**/
 	class IPlayerBase : public IPlayerLanguage
 	{
 	public:
+		/**
+		 * @brief Gets a connection status of a player.
+		 * 
+		 * @return              A vector of menu entities.
+		 */
+		virtual bool IsConnected() = 0;
+
 		/**
 		 * @brief Gets a server side client of the player.
 		 * 

@@ -59,6 +59,11 @@ void SamplePlugin::CPlayerBase::SetLanguage(const ILanguage *pData)
 	m_pLanguage = pData;
 }
 
+bool SamplePlugin::CPlayerBase::IsConnected()
+{
+	return m_pServerSideClient != nullptr;
+}
+
 CServerSideClient *SamplePlugin::CPlayerBase::GetServerSideClient()
 {
 	return m_pServerSideClient;
