@@ -27,11 +27,10 @@ Sample::Provider::GameDataStorage::CGameResource::CGameResource()
 	{
 		auto &aCallbacks = m_aOffsetCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), [&](const CUtlSymbolLarge &aKey, const ptrdiff_t &nOffset)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), {[&](const CUtlSymbolLarge &aKey, const ptrdiff_t &nOffset)
 		{
 			m_nEntitySystemOffset = nOffset;
-		});
-
+		}});
 
 		m_aGameConfig.GetOffsets().AddListener(&aCallbacks);
 	}

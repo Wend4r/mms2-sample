@@ -983,7 +983,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 			{
 				auto &aMessage = vecMessages[i];
 
-				aWarnings.Push(aMessage.Get());
+				aWarnings.Push(aMessage);
 			}
 
 			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
@@ -1020,7 +1020,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 			{
 				auto &aMessage = vecMessages[i];
 
-				aWarnings.Push(aMessage.Get());
+				aWarnings.Push(aMessage);
 			}
 
 			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)

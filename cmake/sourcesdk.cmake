@@ -7,6 +7,7 @@ if(NOT SOURCESDK_DIR)
 endif()
 
 set(SOURCESDK_BINARY_DIR "sourcesdk")
+set(SOURCESDK_MALLOC_OVERRIDE ON)
 
 add_subdirectory(${SOURCESDK_DIR} ${SOURCESDK_BINARY_DIR})
 
