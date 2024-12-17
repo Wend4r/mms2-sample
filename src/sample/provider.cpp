@@ -95,7 +95,7 @@ bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameD
 
 bool Sample::Provider::Destroy(GameData::CBufferStringVector &vecMessages)
 {
-	m_mapLibraries.PurgeAndDeleteElements();
+	m_mapLibraries.Purge();
 
 	return true;
 }
