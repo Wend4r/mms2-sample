@@ -141,11 +141,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	{
 		CSingleRecipientFilter aFilter(aSlot);
 
-		int iClient = aSlot.Get();
-
-		Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
-
-		const auto &aPlayer = m_aPlayers[iClient];
+		const auto &aPlayer = GetPlayerData(aSlot);
 
 		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
 
@@ -321,9 +317,9 @@ SamplePlugin::CPlayerBase &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	int iClient = aSlot.Get();
 
-	Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
+	Assert(0 <= iClient && iClient < sizeof(m_aPlayers));
 
-	return m_aPlayers[aSlot.Get()];
+	return m_aPlayers[iClient];
 }
 
 bool SamplePlugin::Init()
