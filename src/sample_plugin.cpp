@@ -1604,7 +1604,10 @@ bool SamplePlugin::HookGameEvents()
 
 bool SamplePlugin::UnhookGameEvents()
 {
-	g_pGameEventManager->RemoveListener(this);
+	if(g_pGameEventManager)
+	{
+		g_pGameEventManager->RemoveListener(this);
+	}
 
 	return true;
 }
