@@ -94,6 +94,7 @@ public: // IMetamodListener
 public: // ISample
 	CGameEntitySystem **GetGameEntitySystemPointer() const override;
 	CBaseGameSystemFactory **GetFirstGameSystemPointer() const override;
+	CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
 
 	class CLanguage : public ISample::ILanguage

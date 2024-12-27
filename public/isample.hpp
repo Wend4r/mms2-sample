@@ -31,6 +31,7 @@
 
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
+class CGameSystemEventDispatcher;
 class CServerSideClient;
 class IGameEventManager2;
 
@@ -54,6 +55,13 @@ public:
 	 * @return              A double pointer to a first game system.
 	 */
 	virtual CBaseGameSystemFactory **GetFirstGameSystemPointer() const = 0;
+
+	/**
+	 * @brief Gets a game system event dispatcher.
+	 * 
+	 * @return              A double pointer to a game system event dispatcher.
+	 */
+	virtual CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const = 0;
 
 	/**
 	 * @brief Gets a game event manager.
