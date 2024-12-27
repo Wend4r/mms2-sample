@@ -25,6 +25,7 @@
 #	pragma once
 
 #	include <functional>
+#	include <memory>
 
 #	include <playerslot.h>
 #	include <tier0/utlstring.h>
@@ -43,13 +44,46 @@ namespace Sample
 	public:
 		ChatCommandSystem();
 
-		using Callback_t = std::function<void (CPlayerSlot, bool, const CUtlVector<CUtlString> &)>;
+		using OnCallback_t = std::function<void (CPlayerSlot, bool, const CUtlVector<CUtlString> &)>;
+		using OnCallbackShared_t = std::shared_ptr<OnCallback_t>;
+
+		class CollectorChangedSharedCallback
+		{
+		public:
+			CollectorChangedSharedCallback()
+				:  m_pCallback(std::make_shared<OnCallback_t>(nullptr))
+			{
+			}
+
+			CollectorChangedSharedCallback(const OnCallbackShared_t &funcSharedCallback)
+				:  m_pCallback(funcSharedCallback)
+			{
+			}
+
+			CollectorChangedSharedCallback(const OnCallback_t &funcCallback)
+				:  m_pCallback(std::make_shared<OnCallback_t>(funcCallback))
+			{
+			}
+
+			operator OnCallbackShared_t() const
+			{
+				return m_pCallback;
+			}
+
+			operator OnCallback_t() const
+			{
+				return *m_pCallback;
+			}
+
+		private:
+			OnCallbackShared_t m_pCallback;
+		}; // MenuSystem::ChatCommandSystem::CollectorChangedSharedCallback
 
 	public:
 		const char *GetName();
 
 	public:
-		bool Register(const char *pszName, const Callback_t &fnCallback);
+		bool Register(const char *pszName, const CollectorChangedSharedCallback &fnCallback);
 		bool Unregister(const char *pszName);
 		void UnregisterAll();
 
@@ -66,8 +100,8 @@ namespace Sample
 
 	private:
 		CUtlSymbolTableLarge_CI m_aSymbolTable;
-		CUtlMap<CUtlSymbolLarge, Callback_t> m_mapCallbacks;
-	}; // ChatCommand
+		CUtlMap<CUtlSymbolLarge, CollectorChangedSharedCallback> m_mapCallbacks;
+	}; // MenuSystem::ChatCommandSystem
 }; // Sample
 
 #endif // _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_

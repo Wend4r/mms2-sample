@@ -34,7 +34,7 @@ const char *Sample::ChatCommandSystem::GetName()
 	return "Sample - Chat Command System";
 }
 
-bool Sample::ChatCommandSystem::Register(const char *pszName, const Callback_t &fnCallback)
+bool Sample::ChatCommandSystem::Register(const char *pszName, const CollectorChangedSharedCallback &fnCallback)
 {
 	m_mapCallbacks.Insert(m_aSymbolTable.AddString(pszName), fnCallback);
 
@@ -72,9 +72,9 @@ bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const 
 
 	if(!vecArgs.Count())
 	{
-		if(IsChannelEnabled(LS_DETAILED))
+		if(Logger::IsChannelEnabled(LS_DETAILED))
 		{
-			Detailed("Chat command arguments is empty\n");
+			Logger::Detailed("Chat command arguments is empty\n");
 		}
 
 		return false;
@@ -82,24 +82,26 @@ bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const 
 
 	const char *pszName = vecArgs[0];
 
-	auto iFoundIndex = m_mapCallbacks.Find(FindSymbol(pszName));
+	auto iFound = m_mapCallbacks.Find(FindSymbol(pszName));
 
-	if(iFoundIndex == m_mapCallbacks.InvalidIndex())
+	if(iFound == m_mapCallbacks.InvalidIndex())
 	{
-		if(IsChannelEnabled(LS_DETAILED))
+		if(Logger::IsChannelEnabled(LS_DETAILED))
 		{
-			DetailedFormat("Can't be found \"%s\" command\n", pszName);
+			Logger::DetailedFormat("Can't be found \"%s\" command\n", pszName);
 		}
 
 		return false;
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		DetailedFormat(u8"Handling \"%s\" command…\n", pszName);
+		Logger::DetailedFormat(u8"Handling \"%s\" command…\n", pszName);
 	}
 
-	m_mapCallbacks.Element(iFoundIndex)(aSlot, bIsSilent, vecArgs);
+	OnCallback_t it = m_mapCallbacks[iFound];
+
+	it(aSlot, bIsSilent, vecArgs);
 
 	return true;
 }

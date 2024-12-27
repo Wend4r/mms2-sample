@@ -137,7 +137,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
 
 	// Register chat commands.
-	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
+	Sample::ChatCommandSystem::Register("sample", {[&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
 		CSingleRecipientFilter aFilter(aSlot);
 
@@ -156,7 +156,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 		{
 			Logger::Warning("Not found a your argument phrase\n");
 		}
-	});
+	}});
 
 	if(late)
 	{
