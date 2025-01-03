@@ -2048,8 +2048,10 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		{
 			try
 			{
-				aConcat.AppendToBuffer(sMessage, "Connect message");
-				DumpProtobufMessage(aConcat2, sMessage, *pConnectMsg);
+				CBufferStringGrowable<1024> sProtoBuffer;
+
+				DumpProtobufMessage(aConcat2, sProtoBuffer, *pConnectMsg);
+				aConcat.AppendToBuffer(sMessage, "Connect message", sProtoBuffer.Get());
 			}
 			catch(const std::exception &aError)
 			{
