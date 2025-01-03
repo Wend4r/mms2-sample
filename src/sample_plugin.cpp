@@ -447,7 +447,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 		{
 			const auto &aConcat = s_aEmbedConcat;
 
-			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pResourceManifest);
+			aConcat.AppendPointerToBuffer(sBuffer, "Resource manifest", msg.m_pResourceManifest);
 		}
 
 		Logger::Detailed(sBuffer);
