@@ -369,12 +369,14 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 #ifndef _WIN32
 			try
 			{
-				aConcat.AppendToBuffer(sBuffer, "Config");
-				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+				CBufferStringGrowable<1024> sProtoBuffer;
+
+				DumpProtobufMessage(aConcat2, sProtoBuffer, *msg.m_pConfig);
+				aConcat.AppendToBuffer(sBuffer, "Config", sProtoBuffer.Get());
 			}
 			catch(const std::exception &aError)
 			{
-				sBuffer.Format("%s: %s\n", "Config", aError.what());
+				aConcat.AppendToBuffer(sBuffer, "Config", aError.what());
 			}
 #endif
 
@@ -408,12 +410,14 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 #ifndef _WIN32
 			try
 			{
-				aConcat.AppendToBuffer(sBuffer, "Config");
-				DumpProtobufMessage(aConcat2, sBuffer, *msg.m_pConfig);
+				CBufferStringGrowable<1024> sProtoBuffer;
+
+				DumpProtobufMessage(aConcat2, sProtoBuffer, *msg.m_pConfig);
+				aConcat.AppendToBuffer(sBuffer, "Config", sProtoBuffer.Get());
 			}
 			catch(const std::exception &aError)
 			{
-				sBuffer.Format("Config: %s\n", aError.what());
+				aConcat.AppendToBuffer(sBuffer, "Config", aError.what());
 			}
 #endif
 
@@ -2049,7 +2053,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 			}
 			catch(const std::exception &aError)
 			{
-				sMessage.AppendFormat("%s: %s\n", "Connect message", aError.what());
+				aConcat.AppendToBuffer(sMessage, "Connect message", aError.what());
 			}
 		}
 #endif
