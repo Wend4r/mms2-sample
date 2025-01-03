@@ -44,7 +44,7 @@
 
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
-SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
+SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, void *, C2S_CONNECT_Message *, const char *, const byte *, int, bool);
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
@@ -170,7 +170,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 			{
 				if(pClient->IsConnected() && !pClient->IsFakeClient())
 				{
-					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, NULL, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
 				}
 			}
 		}
@@ -1723,14 +1723,14 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 	RETURN_META(MRES_IGNORED);
 }
 
-CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
+CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
 
 	auto *pClient = META_RESULT_ORIG_RET(CServerSideClientBase *);
 
-	OnConnectClient(pNetServer, pClient, pszName, pAddr, socket, pSplitPlayer, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
+	OnConnectClient(pNetServer, pClient, pszName, pAddr, pNetInfo, pConnectMsg, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
 
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
@@ -1999,7 +1999,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 	}
 }
 
-void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	if(pClient)
 	{
@@ -2032,9 +2032,9 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 			DumpServerSideClient(aConcat, sMessage, pClient);
 		}
 
-		if(socket)
+		if(pNetInfo)
 		{
-			aConcat.AppendHandleToBuffer(sMessage, "Socket", (uint32)socket);
+			aConcat.AppendHandleToBuffer(sMessage, "Net info", pNetInfo);
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
