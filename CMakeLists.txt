@@ -36,9 +36,10 @@ set(SOURCE_SAMPLE_PROVIDER_DIR "${SOURCE_SAMPLE_DIR}/provider")
 set(SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR "${SOURCE_SAMPLE_PROVIDER_DIR}/gamedata")
 
 set(SOURCESDK_PROTOS
-	netmessages
 	network_connection
 	networkbasetypes
+	netmessages
+	connectionless_netmessages
 	networksystem_protomessages
 	usermessages
 )

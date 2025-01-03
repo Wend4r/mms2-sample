@@ -41,6 +41,7 @@
 #include <shareddefs.h>
 #include <tier0/commonmacros.h>
 #include <usermessages.pb.h>
+#include <connectionless_netmessages.pb.h>
 
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
@@ -373,7 +374,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 			}
 			catch(const std::exception &aError)
 			{
-				sBuffer.Format("Config: %s\n", aError.what());
+				sBuffer.Format("%s: %s\n", "Config", aError.what());
 			}
 #endif
 
@@ -1990,8 +1991,8 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 		{
 			sMessage.Format("Receive a proto message: %s\n", aError.what());
 		}
-
 #endif
+
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
 
@@ -2021,7 +2022,8 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		const auto &aConcat = s_aEmbedConcat, 
+		           &aConcat2 = s_aEmbed2Concat;
 
 		CBufferStringGrowable<1024> sMessage;
 
@@ -2034,7 +2036,27 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 
 		if(pNetInfo)
 		{
-			aConcat.AppendHandleToBuffer(sMessage, "Net info", pNetInfo);
+			aConcat.AppendPointerToBuffer(sMessage, "Net info", pNetInfo);
+		}
+
+#ifndef _WIN32
+		if(pConnectMsg)
+		{
+			try
+			{
+				aConcat.AppendToBuffer(sMessage, "Connect message");
+				DumpProtobufMessage(aConcat2, sMessage, *pConnectMsg);
+			}
+			catch(const std::exception &aError)
+			{
+				sMessage.AppendFormat("%s: %s\n", "Connect message", aError.what());
+			}
+		}
+#endif
+
+		if(pszChallenge)
+		{
+			aConcat.AppendHandleToBuffer(sMessage, "Challenge", pszChallenge);
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
