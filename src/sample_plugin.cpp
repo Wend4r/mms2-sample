@@ -371,8 +371,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 			{
 				CBufferStringGrowable<1024> sProtoBuffer;
 
-				DumpProtobufMessage(aConcat2, sProtoBuffer, *msg.m_pConfig);
-				aConcat.AppendToBuffer(sBuffer, "Config", sProtoBuffer.Get());
+				aConcat.AppendToBuffer(sBuffer, "Config", DumpProtobufMessage(aConcat2, *msg.m_pConfig).Get());
 			}
 			catch(const std::exception &aError)
 			{
@@ -410,10 +409,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 #ifndef _WIN32
 			try
 			{
-				CBufferStringGrowable<1024> sProtoBuffer;
-
-				DumpProtobufMessage(aConcat2, sProtoBuffer, *msg.m_pConfig);
-				aConcat.AppendToBuffer(sBuffer, "Config", sProtoBuffer.Get());
+				aConcat.AppendToBuffer(sBuffer, "Config", DumpProtobufMessage(aConcat2, *msg.m_pConfig).Get());
 			}
 			catch(const std::exception &aError)
 			{
@@ -1758,17 +1754,16 @@ void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
-void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
+CBufferStringGrowable<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
 {
-	CBufferStringGrowable<1024> sProtoOutput;
+	CBufferStringGrowable<1024> sResult;
 
-	sProtoOutput.Insert(0, aMessage.DebugString().c_str());
-	sProtoOutput.Replace("\n", aConcat.m_aEndAndNextLine);
-	sProtoOutput.SetLength(sProtoOutput.GetTotalNumber() - (V_strlen(aConcat.m_aEndAndNextLine) - 1)); // Strip the last next line, leaving the end.
+	sResult.Insert(0, aMessage.DebugString().c_str());
+	sResult.Replace("\n", aConcat.m_aEndAndNextLine);
+	sResult.SetLength(sResult.GetTotalNumber() - V_strlen(aConcat.m_aEndAndNextLine)); // Strip the last next line, leaving the end.
+	sResult.Insert(0, aConcat.m_aEndAndNextLine);
 
-	const char *pszProtoConcat[] = {aConcat.m_aStartWith, sProtoOutput.Get()};
-
-	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
+	return sResult;
 }
 
 void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
@@ -1988,13 +1983,23 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 #ifndef _WIN32
 		try
 		{
-			sMessage.Format("Receive %s message:\n", config.GetTypeName().c_str());
-			DumpProtobufMessage(aConcat, sMessage, config);
+			sMessage.Format("Receive %s message:", config.GetTypeName().c_str());
+
+			try
+			{
+				sMessage.Insert(sMessage.GetTotalNumber(), DumpProtobufMessage(aConcat, config).Get());
+			}
+			catch(const std::exception &aError)
+			{
+				sMessage.Insert(sMessage.GetTotalNumber(), aError.what());
+			}
 		}
 		catch(const std::exception &aError)
 		{
-			sMessage.Format("Receive a proto message: %s\n", aError.what());
+			sMessage.Format("Receive a proto message: %s", aError.what());
 		}
+
+		sMessage.Insert(sMessage.GetTotalNumber(), "\n");
 #endif
 
 		sMessage.AppendFormat("Register globals:\n");
@@ -2048,10 +2053,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		{
 			try
 			{
-				CBufferStringGrowable<1024> sProtoBuffer;
-
-				DumpProtobufMessage(aConcat2, sProtoBuffer, *pConnectMsg);
-				aConcat.AppendToBuffer(sMessage, "Connect message", sProtoBuffer.Get());
+				aConcat.AppendToBuffer(sMessage, "Connect message", DumpProtobufMessage(aConcat2, *pConnectMsg).Get());
 			}
 			catch(const std::exception &aError)
 			{
