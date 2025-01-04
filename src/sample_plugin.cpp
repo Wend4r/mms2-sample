@@ -90,7 +90,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 {
 	PLUGIN_SAVEVARS();
 
-	MessageFormat("Starting %s plugin...\n", GetName());
+	Logger::MessageFormat("Starting %s plugin...\n", GetName());
 
 	if(!InitGlobals(ismm, error, maxlen))
 	{
@@ -179,7 +179,15 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	ismm->AddListener(static_cast<ISmmPlugin *>(this), static_cast<IMetamodListener *>(this));
 
-	MessageFormat("%s started!\n", GetName());
+	// Print CPU information.
+	{
+		CBufferStringGrowable<1024> sBuffer;
+
+		GetCPUInformation().GetDescription(&sBuffer);
+		Logger::Message(sBuffer);
+	}
+
+	Logger::MessageFormat("%s started!\n", GetName());
 
 	return true;
 }
