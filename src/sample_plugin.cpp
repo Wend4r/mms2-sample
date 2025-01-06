@@ -91,6 +91,11 @@ SamplePlugin::SamplePlugin()
 
 		const auto &aPlayer = GetPlayerData(aSlot);
 
+		if(!aPlayer.IsConnected())
+		{
+			return;
+		}
+
 		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
 
 		if(aPhrase.m_pFormat && aPhrase.m_pContent)
