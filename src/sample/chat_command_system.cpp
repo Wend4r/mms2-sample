@@ -34,7 +34,7 @@ const char *Sample::ChatCommandSystem::GetName()
 	return "Sample - Chat Command System";
 }
 
-bool Sample::ChatCommandSystem::Register(const char *pszName, const CollectorChangedSharedCallback &fnCallback)
+bool Sample::ChatCommandSystem::Register(const char *pszName, const SharedCallback &fnCallback)
 {
 	m_mapCallbacks.Insert(m_aSymbolTable.AddString(pszName), fnCallback);
 

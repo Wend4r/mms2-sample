@@ -47,20 +47,20 @@ namespace Sample
 		using OnCallback_t = std::function<void (CPlayerSlot, bool, const CUtlVector<CUtlString> &)>;
 		using OnCallbackShared_t = std::shared_ptr<OnCallback_t>;
 
-		class CollectorChangedSharedCallback
+		class SharedCallback
 		{
 		public:
-			CollectorChangedSharedCallback()
+			SharedCallback()
 				:  m_pCallback(std::make_shared<OnCallback_t>(nullptr))
 			{
 			}
 
-			CollectorChangedSharedCallback(const OnCallbackShared_t &funcSharedCallback)
+			SharedCallback(const OnCallbackShared_t &funcSharedCallback)
 				:  m_pCallback(funcSharedCallback)
 			{
 			}
 
-			CollectorChangedSharedCallback(const OnCallback_t &funcCallback)
+			SharedCallback(const OnCallback_t &funcCallback)
 				:  m_pCallback(std::make_shared<OnCallback_t>(funcCallback))
 			{
 			}
@@ -77,13 +77,13 @@ namespace Sample
 
 		private:
 			OnCallbackShared_t m_pCallback;
-		}; // MenuSystem::ChatCommandSystem::CollectorChangedSharedCallback
+		}; // MenuSystem::ChatCommandSystem::SharedCallback
 
 	public:
 		const char *GetName();
 
 	public:
-		bool Register(const char *pszName, const CollectorChangedSharedCallback &fnCallback);
+		bool Register(const char *pszName, const SharedCallback &fnCallback);
 		bool Unregister(const char *pszName);
 		void UnregisterAll();
 
@@ -100,7 +100,7 @@ namespace Sample
 
 	private:
 		CUtlSymbolTableLarge_CI m_aSymbolTable;
-		CUtlMap<CUtlSymbolLarge, CollectorChangedSharedCallback> m_mapCallbacks;
+		CUtlMap<CUtlSymbolLarge, SharedCallback> m_mapCallbacks;
 	}; // MenuSystem::ChatCommandSystem
 }; // Sample
 
