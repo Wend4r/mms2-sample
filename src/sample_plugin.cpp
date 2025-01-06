@@ -84,6 +84,27 @@ SamplePlugin::SamplePlugin()
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
     m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
 {
+	// Register chat commands.
+	Sample::ChatCommandSystem::Register("sample", {[&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
+	{
+		CSingleRecipientFilter aFilter(aSlot);
+
+		const auto &aPlayer = GetPlayerData(aSlot);
+
+		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
+
+		if(aPhrase.m_pFormat && aPhrase.m_pContent)
+		{
+			for(const auto &sArgument : vecArguments)
+			{
+				SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 1, sArgument.Get()).Get());
+			}
+		}
+		else
+		{
+			Logger::Warning("Not found a your argument phrase\n");
+		}
+	}});
 }
 
 bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -136,28 +157,6 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &SamplePlugin::OnDispatchConCommandHook), false);
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
-
-	// Register chat commands.
-	Sample::ChatCommandSystem::Register("sample", {[&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
-	{
-		CSingleRecipientFilter aFilter(aSlot);
-
-		const auto &aPlayer = GetPlayerData(aSlot);
-
-		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
-
-		if(aPhrase.m_pFormat && aPhrase.m_pContent)
-		{
-			for(const auto &sArgument : vecArguments)
-			{
-				SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 1, sArgument.Get()).Get());
-			}
-		}
-		else
-		{
-			Logger::Warning("Not found a your argument phrase\n");
-		}
-	}});
 
 	if(late)
 	{
