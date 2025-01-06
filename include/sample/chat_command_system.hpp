@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_SYSTEM_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_SYSTEM_HPP_
 
 #	pragma once
 
@@ -104,4 +104,4 @@ namespace Sample
 	}; // MenuSystem::ChatCommandSystem
 }; // Sample
 
-#endif // _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
+#endif // _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_SYSTEM_HPP_
