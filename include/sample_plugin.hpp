@@ -60,8 +60,6 @@
 #	define SAMPLE_GAME_LANGUAGES_FILES "configs" CORRECT_PATH_SEPARATOR_S "languages.*"
 #	define SAMPLE_BASE_PATHID "GAME"
 
-#	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
-
 #	define SAMPLE_CLIENT_CVAR_NAME_LANGUAGE "cl_language"
 
 class CBasePlayerController;
