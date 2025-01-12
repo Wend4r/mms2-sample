@@ -75,7 +75,8 @@ const ConcatLineString s_aEmbed2Concat =
 PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
 
 SamplePlugin::SamplePlugin()
- :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
+ :  PathResolver(this),
+    Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
     }, 0, LV_DETAILED, SAMPLE_LOGGINING_COLOR),
@@ -132,6 +133,20 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	}
 
 	ConVar_Register(FCVAR_RELEASE | FCVAR_GAMEDLL);
+
+	if(!InitPathResolver(error, maxlen))
+	{
+		return false;
+	}
+
+	if(Logger::IsChannelEnabled(LS_DETAILED))
+	{
+		CBufferStringGrowable<1024> sMessage;
+
+		sMessage.Insert(0, "Path resolver:\n");
+		s_aEmbedConcat.AppendToBuffer(sMessage, "Base game directory", m_sBaseGameDirectory.c_str());
+		Logger::Detailed(sMessage);
+	}
 
 	if(!InitProvider(error, maxlen))
 	{
@@ -974,6 +989,30 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 	}
 }
 
+bool SamplePlugin::InitPathResolver(char *error, size_t maxlen)
+{
+	if(!PathResolver::Init())
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to initialize a path resolver", maxlen);
+		}
+
+		return false;
+	}
+
+	m_sBaseGameDirectory = PathResolver::ExtractSubpath();
+
+	return true;
+}
+
+bool SamplePlugin::ClearPathResolver(char *error, size_t maxlen)
+{
+	PathResolver::Clear();
+
+	return true;
+}
+
 bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
@@ -1015,7 +1054,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
-	bool bResult = Provider::Load(SAMPLE_BASE_DIR, SAMPLE_BASE_PATHID, vecMessages);
+	bool bResult = Provider::Load(m_sBaseGameDirectory.c_str(), SAMPLE_BASE_PATHID, vecMessages);
 
 	if(vecMessages.Count())
 	{
@@ -1312,8 +1351,10 @@ bool SamplePlugin::UnregisterNetMessages(char *error, size_t maxlen)
 
 bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 {
+	std::string sTranslationsFilesPath = m_sBaseGameDirectory + CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_LANGUAGES_FILES;
+
 	const char *pszPathID = SAMPLE_BASE_PATHID, 
-	           *pszLanguagesFiles = SAMPLE_GAME_LANGUAGES_PATH_FILES;
+	           *pszLanguagesFiles = sTranslationsFilesPath.c_str();
 
 	CUtlVector<CUtlString> vecLangugesFiles;
 	CUtlVector<CUtlString> vecSubmessages;
@@ -1417,8 +1458,10 @@ bool SamplePlugin::ClearLanguages(char *error, size_t maxlen)
 
 bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 {
+	std::string sTranslationsFilesPath = m_sBaseGameDirectory + CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_TRANSLATIONS_FILES;
+
 	const char *pszPathID = SAMPLE_BASE_PATHID, 
-	           *pszTranslationsFiles = SAMPLE_GAME_TRANSLATIONS_PATH_FILES;
+	           *pszTranslationsFiles = sTranslationsFilesPath.c_str();
 
 	CUtlVector<CUtlString> vecTranslationsFiles;
 

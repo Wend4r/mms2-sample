@@ -36,10 +36,10 @@
 
 #	include <gamedata.hpp> // GameData
 
-#	define SAMPLE_GAMECONFIG_FOLDER_DIR "gamedata"
-#	define SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
-#	define SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
-#	define SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
+#	define SAMPLE_PROVIDER_BASE_DIR "gamedata"
+#	define SAMPLE_PROVIDER_GAMERESOURCE_FILENAME SAMPLE_PROVIDER_BASE_DIR CORRECT_PATH_SEPARATOR_S "gameresource.games.*"
+#	define SAMPLE_PROVIDER_GAMESYSTEM_FILENAME SAMPLE_PROVIDER_BASE_DIR CORRECT_PATH_SEPARATOR_S "gamesystem.games.*"
+#	define SAMPLE_PROVIDER_SOURCE2SERVER_FILENAME SAMPLE_PROVIDER_BASE_DIR CORRECT_PATH_SEPARATOR_S "source2server.games.*"
 
 class CBaseGameSystemFactory;
 class CGameEventManager;
@@ -65,13 +65,13 @@ namespace Sample
 		const DynLibUtils::CModule *FindLibrary(const char *pszName) const;
 
 	protected:
-		bool LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
+		bool LoadGameData(const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 
 	public:
 		class GameDataStorage
 		{
 		public:
-			bool Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
+			bool Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
 
 		protected:
 			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);

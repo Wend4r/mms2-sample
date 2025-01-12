@@ -119,16 +119,12 @@ CUtlSymbolLarge Sample::Provider::FindSymbol(const char *pszText) const
 	return m_aSymbolTable.Find(pszText);
 }
 
-bool Sample::Provider::LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::LoadGameData(const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
-	char sBaseConfigDir[MAX_PATH];
-
-	snprintf((char *)sBaseConfigDir, sizeof(sBaseConfigDir), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseDir, SAMPLE_GAMECONFIG_FOLDER_DIR);
-
-	return m_aStorage.Load(this, sBaseConfigDir, pszPathID, vecMessages);
+	return m_aStorage.Load(this, pszBaseGameDir, pszPathID, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	const struct
 	{
@@ -137,20 +133,22 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	} aConfigs[] =
 	{
 		{
-			SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME,
+			SAMPLE_PROVIDER_GAMERESOURCE_FILENAME,
 			&GameDataStorage::LoadGameResource
 		},
 		{
-			SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME,
+			SAMPLE_PROVIDER_GAMESYSTEM_FILENAME,
 			&GameDataStorage::LoadGameSystem
 		},
 		{
-			SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME,
+			SAMPLE_PROVIDER_SOURCE2SERVER_FILENAME,
 			&GameDataStorage::LoadSource2Server
 		}
 	};
 
-	char sConfigFile[MAX_PATH];
+	CBufferStringGrowable<MAX_PATH> sConfigFile;
+
+	CUtlVector<CUtlString> vecConfigFiles;
 
 	CUtlString sError;
 
@@ -160,15 +158,18 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	{
 		AnyConfig::Anyone aGameConfig;
 
-		snprintf((char *)sConfigFile, sizeof(sConfigFile), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseConfigDir, aConfig.pszFilename);
+		sConfigFile.Clear();
+		sConfigFile.Insert(0, pszBaseGameDir);
+		sConfigFile.Insert(sConfigFile.GetTotalNumber(), CORRECT_PATH_SEPARATOR_S);
+		sConfigFile.Insert(sConfigFile.GetTotalNumber(), aConfig.pszFilename);
 
-		CUtlVector<CUtlString> vecConfigFiles;
+		const char *pszConfigFile = sConfigFile.Get();
 
-		g_pFullFileSystem->FindFileAbsoluteList(vecConfigFiles, (const char *)sConfigFile, pszPathID);
+		g_pFullFileSystem->FindFileAbsoluteList(vecConfigFiles, pszConfigFile, pszPathID);
 
 		if(vecConfigFiles.Count() < 1)
 		{
-			const char *pszMessageConcat[] = {"Failed to ", "find \"", sConfigFile, "\" file", ": ", sError.Get()};
+			const char *pszMessageConcat[] = {"Failed to ", "find \"", pszConfigFile, "\" file"};
 
 			vecMessages.AddToTail({pszMessageConcat});
 
@@ -179,7 +180,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 		if(!aGameConfig.Load(aLoadPresets)) // Hot.
 		{
-			const char *pszMessageConcat[] = {"Failed to ", "load \"", sConfigFile, "\" file", ": ", sError.Get()};
+			const char *pszMessageConcat[] = {"Failed to ", "load \"", pszConfigFile, "\" file", ": ", sError.Get()};
 
 			vecMessages.AddToTail({pszMessageConcat});
 
@@ -188,7 +189,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 		if(!(this->*(aConfig.pfnLoad))(pRoot, aGameConfig.Get(), vecMessages))
 		{
-			const char *pszMessageConcat[] = {"Failed to ", "parse \"", sConfigFile, "\" file", ": ", sError.Get()};
+			const char *pszMessageConcat[] = {"Failed to ", "parse \"", pszConfigFile, "\" file", ": ", sError.Get()};
 
 			vecMessages.AddToTail({pszMessageConcat});
 

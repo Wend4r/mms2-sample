@@ -26,8 +26,11 @@
 
 #	include <isample.hpp>
 #	include <sample/chat_command_system.hpp>
+#	include <sample/path_resolver.hpp>
 #	include <sample/provider.hpp>
 #	include <concat.hpp>
+
+#	include <string>
 
 #	include <logger.hpp>
 #	include <translations.hpp>
@@ -51,12 +54,10 @@
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
-#	define SAMPLE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
+#	define SAMPLE_GAME_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define SAMPLE_GAME_EVENTS_FILES "resource" CORRECT_PATH_SEPARATOR_S "*.gameevents"
 #	define SAMPLE_GAME_TRANSLATIONS_FILES "translations" CORRECT_PATH_SEPARATOR_S "*.phrases.*"
-#	define SAMPLE_GAME_TRANSLATIONS_PATH_FILES SAMPLE_BASE_DIR CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_TRANSLATIONS_FILES
 #	define SAMPLE_GAME_LANGUAGES_FILES "configs" CORRECT_PATH_SEPARATOR_S "languages.*"
-#	define SAMPLE_GAME_LANGUAGES_PATH_FILES SAMPLE_BASE_DIR CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_LANGUAGES_FILES
 #	define SAMPLE_BASE_PATHID "GAME"
 
 #	define SAMPLE_EXAMPLE_CHAT_COMMAND "example"
@@ -67,7 +68,7 @@ class CBasePlayerController;
 class INetworkMessageInternal;
 
 class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                           public Sample::ChatCommandSystem, public Sample::Provider, virtual public Logger, public Translations
+                           public Sample::ChatCommandSystem, public Sample::PathResolver, public Sample::Provider, virtual public Logger, public Translations
 {
 public:
 	SamplePlugin();
@@ -207,6 +208,13 @@ public: // CBaseGameSystem
 
 public: // IGameEventListener2
 	void FireGameEvent(IGameEvent *event) override;
+
+public: // Path resolver.
+	bool InitPathResolver(char *error = nullptr, size_t maxlen = 0);
+	bool ClearPathResolver(char *error = nullptr, size_t maxlen = 0);
+
+private:
+	std::string m_sBaseGameDirectory = SAMPLE_GAME_BASE_DIR;
 
 public: // Utils.
 	bool InitProvider(char *error = nullptr, size_t maxlen = 0);
