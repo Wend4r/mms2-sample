@@ -160,8 +160,8 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 		sConfigFile.Clear();
 		sConfigFile.Insert(0, pszBaseGameDir);
-		sConfigFile.Insert(sConfigFile.GetTotalNumber(), CORRECT_PATH_SEPARATOR_S);
-		sConfigFile.Insert(sConfigFile.GetTotalNumber(), aConfig.pszFilename);
+		sConfigFile.Insert(sConfigFile.Length(), CORRECT_PATH_SEPARATOR_S);
+		sConfigFile.Insert(sConfigFile.Length(), aConfig.pszFilename);
 
 		const char *pszConfigFile = sConfigFile.Get();
 

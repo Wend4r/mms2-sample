@@ -1816,7 +1816,7 @@ CBufferStringGrowable<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineSt
 
 	sResult.Insert(0, aMessage.DebugString().c_str());
 	sResult.Replace("\n", aConcat.m_aEndAndNextLine);
-	sResult.SetLength(sResult.GetTotalNumber() - V_strlen(aConcat.m_aEndAndNextLine)); // Strip the last next line, leaving the end.
+	sResult.SetLength(sResult.Length() - V_strlen(aConcat.m_aEndAndNextLine)); // Strip the last next line, leaving the end.
 	sResult.Insert(0, aConcat.m_aEndAndNextLine);
 
 	return sResult;
@@ -2043,11 +2043,11 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 
 			try
 			{
-				sMessage.Insert(sMessage.GetTotalNumber(), DumpProtobufMessage(aConcat, config).Get());
+				sMessage.Insert(sMessage.Length(), DumpProtobufMessage(aConcat, config).Get());
 			}
 			catch(const std::exception &aError)
 			{
-				sMessage.Insert(sMessage.GetTotalNumber(), aError.what());
+				sMessage.Insert(sMessage.Length(), aError.what());
 			}
 		}
 		catch(const std::exception &aError)
@@ -2055,7 +2055,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 			sMessage.Format("Receive a proto message: %s", aError.what());
 		}
 
-		sMessage.Insert(sMessage.GetTotalNumber(), "\n");
+		sMessage.Insert(sMessage.Length(), "\n");
 #endif
 
 		sMessage.AppendFormat("Register globals:\n");
