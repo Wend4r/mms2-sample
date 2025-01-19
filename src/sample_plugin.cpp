@@ -261,6 +261,11 @@ bool Sample_Plugin::Unload(char *error, size_t maxlen)
 		return false;
 	}
 
+	if(!ClearPathResolver(error, maxlen))
+	{
+		return false;
+	}
+
 	ConVar_Unregister();
 
 	// ...
