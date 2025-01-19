@@ -88,7 +88,7 @@ const char *ConcatLineString::AppendBytesToBuffer(CBufferString &sMessage, const
 
 	const size_t nDataSetDepthSize = 4;
 
-	CBufferStringGrowable<4> *psDataSet = new CBufferStringGrowable<4>[nLength];
+	CBufferStringN<4> *psDataSet = new CBufferStringN<4>[nLength];
 
 	for(int n = 0; n < nLength; n++)
 	{

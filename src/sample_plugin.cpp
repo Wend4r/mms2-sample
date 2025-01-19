@@ -127,7 +127,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		DumpGlobals(s_aEmbedConcat, sMessage);
 		Logger::Detailed(sMessage);
@@ -142,7 +142,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Insert(0, "Path resolver:\n");
 		s_aEmbedConcat.AppendToBuffer(sMessage, "Base game directory", m_sBaseGameDirectory.c_str());
@@ -201,7 +201,7 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	// Print CPU information.
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		GetCPUInformation().GetDescription(&sBuffer);
 		Logger::Message(sBuffer);
@@ -386,7 +386,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -397,7 +397,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 #ifndef _WIN32
 			try
 			{
-				CBufferStringGrowable<1024> sProtoBuffer;
+				CBufferStringN<1024> sProtoBuffer;
 
 				aConcat.AppendToBuffer(sBuffer, "Config", DumpProtobufMessage(aConcat2, *msg.m_pConfig).Get());
 			}
@@ -426,7 +426,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -464,7 +464,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -482,7 +482,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -529,7 +529,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -550,7 +550,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -575,7 +575,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -596,7 +596,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -616,7 +616,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -639,7 +639,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -662,14 +662,14 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
 
-			CBufferStringGrowable<1024> sBuffer;
+			CBufferStringN<1024> sBuffer;
 
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
 			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
@@ -684,14 +684,14 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
 		{
 			const auto &aConcat = s_aEmbedConcat;
 
-			CBufferStringGrowable<1024> sBuffer;
+			CBufferStringN<1024> sBuffer;
 
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
@@ -714,7 +714,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -732,7 +732,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -751,7 +751,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -779,7 +779,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -798,7 +798,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -825,7 +825,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -844,7 +844,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -864,7 +864,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -882,7 +882,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -900,7 +900,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -920,7 +920,7 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("%s:\n", __FUNCTION__);
 
@@ -975,7 +975,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 
 				KeyValues3 *pEventMember = pEventDataKeys->GetMember(id);
 
-				CBufferStringGrowable<128> sEventMember;
+				CBufferStringN<128> sEventMember;
 
 				pEventMember->ToString(sEventMember, KV3_TO_STRING_DONT_CLEAR_BUFF);
 				aDetails.PushFormat("\t\"%s\":\t%s", pEventMemberName, sEventMember.Get());
@@ -1743,7 +1743,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 						const auto &aConcat = s_aEmbedConcat, 
 						           &aConcat2 = s_aEmbed2Concat;
 
-						CBufferStringGrowable<1024> sBuffer;
+						CBufferStringN<1024> sBuffer;
 
 						sBuffer.Format("Handle a chat command:\n");
 						aConcat.AppendToBuffer(sBuffer, "Player slot", aPlayerSlot.Get());
@@ -1810,9 +1810,9 @@ void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
-CBufferStringGrowable<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
+CBufferStringN<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
 {
-	CBufferStringGrowable<1024> sResult;
+	CBufferStringN<1024> sResult;
 
 	sResult.Insert(0, aMessage.DebugString().c_str());
 	sResult.Replace("\n", aConcat.m_aEndAndNextLine);
@@ -1887,7 +1887,7 @@ void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *psz
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send get cvar message (%s):\n", pGetCvarValueMessage->GetUnscopedName());
 		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
@@ -1914,7 +1914,7 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send chat message (%s):\n", pSayText2Message->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Entity index", iEntityIndex);
@@ -1967,7 +1967,7 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
@@ -2034,7 +2034,7 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 #ifndef _WIN32
 		try
@@ -2090,7 +2090,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Insert(0, "Connect a client:\n");
 
@@ -2248,7 +2248,7 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		const auto &aConcat = s_aEmbedConcat;
 

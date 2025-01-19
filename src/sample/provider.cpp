@@ -146,7 +146,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 		}
 	};
 
-	CBufferStringGrowable<MAX_PATH> sConfigFile;
+	CBufferStringN<MAX_PATH> sConfigFile;
 
 	CUtlVector<CUtlString> vecConfigFiles;
 

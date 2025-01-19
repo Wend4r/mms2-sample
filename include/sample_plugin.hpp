@@ -267,7 +267,7 @@ public: // SourceHooks.
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
 public: // Dump ones.
-	static CBufferStringGrowable<1024> DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage);
+	static CBufferStringN<1024> DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage);
 	static void DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage);
 	static void DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList);
 	static void DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage);
