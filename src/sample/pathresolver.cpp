@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample/path_resolver.hpp>
+#include <sample/pathresolver.hpp>
 
 #include <stddef.h>
 #include <string.h>

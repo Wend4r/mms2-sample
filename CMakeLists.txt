@@ -76,10 +76,10 @@ set(SOURCE_FILES
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/gameresource.cpp
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/gamesystem.cpp
 	${SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR}/source2server.cpp
-	${SOURCE_SAMPLE_DIR}/chat_command_system.cpp
-	${SOURCE_SAMPLE_DIR}/path_resolver.cpp
+	${SOURCE_SAMPLE_DIR}/chatcommandsystem.cpp
+	${SOURCE_SAMPLE_DIR}/pathresolver.cpp
 	${SOURCE_SAMPLE_DIR}/language.cpp
-	${SOURCE_SAMPLE_DIR}/player_base.cpp
+	${SOURCE_SAMPLE_DIR}/playerbase.cpp
 	${SOURCE_SAMPLE_DIR}/provider.cpp
 	${SOURCE_DIR}/concat.cpp
 	${SOURCE_DIR}/globals.cpp

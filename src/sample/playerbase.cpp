@@ -23,14 +23,14 @@
 
 #include <serversideclient.h>
 
-SamplePlugin::CPlayerBase::CPlayerBase()
+Sample_Plugin::CPlayerBase::CPlayerBase()
  :  m_pServerSideClient(nullptr), 
     m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
 
-bool SamplePlugin::CPlayerBase::AddLanguageListener(IPlayerLanguageListener *pListener)
+bool Sample_Plugin::CPlayerBase::AddLanguageListener(IPlayerLanguageListener *pListener)
 {
 	int iFound = m_vecLanguageCallbacks.Find(pListener);
 
@@ -44,44 +44,44 @@ bool SamplePlugin::CPlayerBase::AddLanguageListener(IPlayerLanguageListener *pLi
 	return bIsExists;
 }
 
-bool SamplePlugin::CPlayerBase::RemoveLanguageListener(IPlayerLanguageListener *pListener)
+bool Sample_Plugin::CPlayerBase::RemoveLanguageListener(IPlayerLanguageListener *pListener)
 {
 	return m_vecLanguageCallbacks.FindAndRemove(pListener);
 }
 
-const ISample::ILanguage *SamplePlugin::CPlayerBase::GetLanguage() const
+const ISample::ILanguage *Sample_Plugin::CPlayerBase::GetLanguage() const
 {
 	return m_pLanguage;
 }
 
-void SamplePlugin::CPlayerBase::SetLanguage(const ILanguage *pData)
+void Sample_Plugin::CPlayerBase::SetLanguage(const ILanguage *pData)
 {
 	m_pLanguage = pData;
 }
 
-bool SamplePlugin::CPlayerBase::IsConnected() const
+bool Sample_Plugin::CPlayerBase::IsConnected() const
 {
 	return m_pServerSideClient != nullptr;
 }
 
-CServerSideClient *SamplePlugin::CPlayerBase::GetServerSideClient()
+CServerSideClient *Sample_Plugin::CPlayerBase::GetServerSideClient()
 {
 	return m_pServerSideClient;
 }
 
-void SamplePlugin::CPlayerBase::OnConnected(CServerSideClient *pClient)
+void Sample_Plugin::CPlayerBase::OnConnected(CServerSideClient *pClient)
 {
 	m_pServerSideClient = pClient;
 }
 
-void SamplePlugin::CPlayerBase::OnDisconnected(CServerSideClient *pClient, ENetworkDisconnectionReason eReason)
+void Sample_Plugin::CPlayerBase::OnDisconnected(CServerSideClient *pClient, ENetworkDisconnectionReason eReason)
 {
 	m_pServerSideClient = nullptr;
 	m_pLanguage = nullptr;
 	m_aYourArgumentPhrase = {nullptr, nullptr};
 }
 
-void SamplePlugin::CPlayerBase::OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData)
+void Sample_Plugin::CPlayerBase::OnLanguageChanged(CPlayerSlot aSlot, CLanguage *pData)
 {
 	SetLanguage(pData);
 
@@ -91,7 +91,7 @@ void SamplePlugin::CPlayerBase::OnLanguageChanged(CPlayerSlot aSlot, CLanguage *
 	}
 }
 
-void SamplePlugin::CPlayerBase::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
+void Sample_Plugin::CPlayerBase::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
 	const struct
 	{
@@ -153,12 +153,12 @@ void SamplePlugin::CPlayerBase::TranslatePhrases(const Translations *pTranslatio
 	}
 }
 
-const SamplePlugin::CPlayerBase::TranslatedPhrase &SamplePlugin::CPlayerBase::GetYourArgumentPhrase() const
+const Sample_Plugin::CPlayerBase::TranslatedPhrase &Sample_Plugin::CPlayerBase::GetYourArgumentPhrase() const
 {
 	return m_aYourArgumentPhrase;
 }
 
-const ISample::ILanguage *SamplePlugin::GetServerLanguage() const
+const ISample::ILanguage *Sample_Plugin::GetServerLanguage() const
 {
 	return &m_aServerLanguage;
 }

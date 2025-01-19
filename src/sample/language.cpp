@@ -21,28 +21,28 @@
 
 #include <sample_plugin.hpp>
 
-SamplePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
+Sample_Plugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
 {
 }
 
-const char *SamplePlugin::CLanguage::GetName() const
+const char *Sample_Plugin::CLanguage::GetName() const
 {
 	return m_sName.String();
 }
 
-void SamplePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
+void Sample_Plugin::CLanguage::SetName(const CUtlSymbolLarge &s)
 {
 	m_sName = s;
 }
 
-const char *SamplePlugin::CLanguage::GetCountryCode() const
+const char *Sample_Plugin::CLanguage::GetCountryCode() const
 {
 	return m_sCountryCode;
 }
 
-void SamplePlugin::CLanguage::SetCountryCode(const char *psz)
+void Sample_Plugin::CLanguage::SetCountryCode(const char *psz)
 {
 	m_sCountryCode = psz;
 }

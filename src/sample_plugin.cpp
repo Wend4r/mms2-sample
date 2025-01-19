@@ -49,8 +49,8 @@ SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSide
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
-static SamplePlugin s_aSamplePlugin;
-SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
+static Sample_Plugin s_aSamplePlugin;
+Sample_Plugin *g_pSamplePlugin = &s_aSamplePlugin;
 
 const ConcatLineString s_aEmbedConcat =
 {
@@ -72,9 +72,9 @@ const ConcatLineString s_aEmbed2Concat =
 	}
 };
 
-PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
+PLUGIN_EXPOSE(Sample_Plugin, s_aSamplePlugin);
 
-SamplePlugin::SamplePlugin()
+Sample_Plugin::Sample_Plugin()
  :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
@@ -114,7 +114,7 @@ SamplePlugin::SamplePlugin()
 	}});
 }
 
-bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
+bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
 
@@ -176,8 +176,8 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	ParseGameEvents();
 
-	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &SamplePlugin::OnDispatchConCommandHook), false);
-	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
+	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &Sample_Plugin::OnDispatchConCommandHook), false);
+	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &Sample_Plugin::OnStartupServerHook, true);
 
 	if(late)
 	{
@@ -212,18 +212,18 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	return true;
 }
 
-bool SamplePlugin::Unload(char *error, size_t maxlen)
+bool Sample_Plugin::Unload(char *error, size_t maxlen)
 {
 	{
 		auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
 		if(pNetServer)
 		{
-			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &Sample_Plugin::OnConnectClientHook, true);
 		}
 	}
 
-	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
+	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &Sample_Plugin::OnStartupServerHook, true);
 
 	UnhookGameEvents();
 
@@ -268,17 +268,17 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::Pause(char *error, size_t maxlen)
+bool Sample_Plugin::Pause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-bool SamplePlugin::Unpause(char *error, size_t maxlen)
+bool Sample_Plugin::Unpause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-void SamplePlugin::AllPluginsLoaded()
+void Sample_Plugin::AllPluginsLoaded()
 {
 	/**
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
@@ -286,16 +286,16 @@ void SamplePlugin::AllPluginsLoaded()
 	 */
 }
 
-const char *SamplePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
-const char *SamplePlugin::GetName()          { return META_PLUGIN_NAME; }
-const char *SamplePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
-const char *SamplePlugin::GetURL()           { return META_PLUGIN_URL; }
-const char *SamplePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
-const char *SamplePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
-const char *SamplePlugin::GetDate()          { return META_PLUGIN_DATE; }
-const char *SamplePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
+const char *Sample_Plugin::GetAuthor()          { return META_PLUGIN_AUTHOR; }
+const char *Sample_Plugin::GetName()            { return META_PLUGIN_NAME; }
+const char *Sample_Plugin::GetDescription()     { return META_PLUGIN_DESCRIPTION; }
+const char *Sample_Plugin::GetURL()             { return META_PLUGIN_URL; }
+const char *Sample_Plugin::GetLicense()         { return META_PLUGIN_LICENSE; }
+const char *Sample_Plugin::GetVersion()         { return META_PLUGIN_VERSION; }
+const char *Sample_Plugin::GetDate()            { return META_PLUGIN_DATE; }
+const char *Sample_Plugin::GetLogTag()          { return META_PLUGIN_LOG_TAG; }
 
-void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
+void *Sample_Plugin::OnMetamodQuery(const char *iface, int *ret)
 {
 	if(!strcmp(iface, SAMPLE_INTERFACE_NAME))
 	{
@@ -315,39 +315,39 @@ void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
 	return nullptr;
 }
 
-CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer() const
+CGameEntitySystem **Sample_Plugin::GetGameEntitySystemPointer() const
 {
 	return reinterpret_cast<CGameEntitySystem **>(reinterpret_cast<uintptr_t>(g_pGameResourceServiceServer) + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
 }
 
-CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
+CBaseGameSystemFactory **Sample_Plugin::GetFirstGameSystemPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
-CGameSystemEventDispatcher **SamplePlugin::GetGameSystemEventDispatcherPointer() const
+CGameSystemEventDispatcher **Sample_Plugin::GetGameSystemEventDispatcherPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetEventDispatcher();
 }
 
-IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
+IGameEventManager2 **Sample_Plugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
-const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
+const ISample::ILanguage *Sample_Plugin::GetLanguageByName(const char *psz) const
 {
 	auto iFound = m_mapLanguages.Find(FindLanguageSymbol(psz));
 
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ISample::IPlayerBase *SamplePlugin::GetPlayerBase(const CPlayerSlot &aSlot)
+ISample::IPlayerBase *Sample_Plugin::GetPlayerBase(const CPlayerSlot &aSlot)
 {
 	return &GetPlayerData(aSlot);
 }
 
-SamplePlugin::CPlayerBase &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+Sample_Plugin::CPlayerBase &Sample_Plugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	int iClient = aSlot.Get();
 
@@ -356,7 +356,7 @@ SamplePlugin::CPlayerBase &SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 	return m_aPlayers[iClient];
 }
 
-bool SamplePlugin::Init()
+bool Sample_Plugin::Init()
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -366,7 +366,7 @@ bool SamplePlugin::Init()
 	return true;
 }
 
-void SamplePlugin::PostInit()
+void Sample_Plugin::PostInit()
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -374,7 +374,7 @@ void SamplePlugin::PostInit()
 	}
 }
 
-void SamplePlugin::Shutdown()
+void Sample_Plugin::Shutdown()
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -382,7 +382,7 @@ void SamplePlugin::Shutdown()
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameInit)
+GS_EVENT_MEMBER(Sample_Plugin, GameInit)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -414,7 +414,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
+GS_EVENT_MEMBER(Sample_Plugin, GameShutdown)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -422,7 +422,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
+GS_EVENT_MEMBER(Sample_Plugin, GamePostInit)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -452,7 +452,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
+GS_EVENT_MEMBER(Sample_Plugin, GamePreShutdown)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -460,7 +460,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
+GS_EVENT_MEMBER(Sample_Plugin, BuildGameSessionManifest)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -478,7 +478,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameActivate)
+GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -509,7 +509,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
+GS_EVENT_MEMBER(Sample_Plugin, ClientFullySignedOn)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -517,7 +517,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, Disconnect)
+GS_EVENT_MEMBER(Sample_Plugin, Disconnect)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -525,7 +525,7 @@ GS_EVENT_MEMBER(SamplePlugin, Disconnect)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
+GS_EVENT_MEMBER(Sample_Plugin, GameDeactivate)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -546,7 +546,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
+GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupPrecache)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -571,7 +571,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
+GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupUncache)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -592,7 +592,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
+GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupLoad)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -612,7 +612,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
+GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupLoad)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -635,7 +635,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
+GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupUnload)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -658,7 +658,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
+GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupUnload)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -680,7 +680,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
+GS_EVENT_MEMBER(Sample_Plugin, ActiveSpawnGroupChanged)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -702,7 +702,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
+GS_EVENT_MEMBER(Sample_Plugin, ClientPostDataUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -710,7 +710,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
+GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -728,7 +728,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
+GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -747,7 +747,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
+GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -767,7 +767,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
+GS_EVENT_MEMBER(Sample_Plugin, ClientPostRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -775,7 +775,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
+GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -794,7 +794,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
+GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -813,7 +813,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
+GS_EVENT_MEMBER(Sample_Plugin, ServerPreClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -821,7 +821,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
+GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -840,7 +840,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
+GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -860,7 +860,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
+GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -878,7 +878,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
+GS_EVENT_MEMBER(Sample_Plugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -896,7 +896,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SaveGame)
+GS_EVENT_MEMBER(Sample_Plugin, SaveGame)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -916,7 +916,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
+GS_EVENT_MEMBER(Sample_Plugin, RestoreGame)
 {
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -936,7 +936,7 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 	}
 }
 
-void SamplePlugin::FireGameEvent(IGameEvent *event)
+void Sample_Plugin::FireGameEvent(IGameEvent *event)
 {
 	if(!m_aEnableGameEventsDetaillsConVar.GetValue())
 	{
@@ -990,7 +990,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 	}
 }
 
-bool SamplePlugin::InitPathResolver(char *error, size_t maxlen)
+bool Sample_Plugin::InitPathResolver(char *error, size_t maxlen)
 {
 	if(!PathResolver::Init())
 	{
@@ -1007,14 +1007,14 @@ bool SamplePlugin::InitPathResolver(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::ClearPathResolver(char *error, size_t maxlen)
+bool Sample_Plugin::ClearPathResolver(char *error, size_t maxlen)
 {
 	PathResolver::Clear();
 
 	return true;
 }
 
-bool SamplePlugin::InitProvider(char *error, size_t maxlen)
+bool Sample_Plugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -1051,7 +1051,7 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
+bool Sample_Plugin::LoadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -1088,7 +1088,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
+bool Sample_Plugin::UnloadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -1125,7 +1125,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
+bool Sample_Plugin::RegisterGameResource(char *error, size_t maxlen)
 {
 	CGameEntitySystem **pGameEntitySystem = GetGameEntitySystemPointer();
 
@@ -1150,7 +1150,7 @@ bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
+bool Sample_Plugin::UnregisterGameResource(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEntitySystem())
 	{
@@ -1165,7 +1165,7 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
+bool Sample_Plugin::RegisterGameFactory(char *error, size_t maxlen)
 {
 	CBaseGameSystemFactory **ppFactory = GetFirstGameSystemPointer();
 
@@ -1189,12 +1189,12 @@ bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 		return false;
 	}
 
-	m_pFactory = new CGameSystemStaticFactory<SamplePlugin>(GetName(), static_cast<SamplePlugin *>(this), &g_pSamplePlugin);
+	m_pFactory = new CGameSystemStaticFactory<Sample_Plugin>(GetName(), static_cast<Sample_Plugin *>(this), &g_pSamplePlugin);
 
 	return true;
 }
 
-bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
+bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 {
 	if(m_pFactory)
 	{
@@ -1257,7 +1257,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
+bool Sample_Plugin::RegisterSource2Server(char *error, size_t maxlen)
 {
 	IGameEventManager2 **ppGameEventManager = GetGameEventManagerPointer();
 
@@ -1284,7 +1284,7 @@ bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
+bool Sample_Plugin::UnregisterSource2Server(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEventManager())
 	{
@@ -1299,7 +1299,7 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
+bool Sample_Plugin::RegisterNetMessages(char *error, size_t maxlen)
 {
 	const struct
 	{
@@ -1343,14 +1343,14 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterNetMessages(char *error, size_t maxlen)
+bool Sample_Plugin::UnregisterNetMessages(char *error, size_t maxlen)
 {
 	m_pSayText2Message = NULL;
 
 	return true;
 }
 
-bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
+bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 {
 	std::string sTranslationsFilesPath = m_sBaseGameDirectory + CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_LANGUAGES_FILES;
 
@@ -1417,7 +1417,7 @@ bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
+bool Sample_Plugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
 {
 	int iMemberCount = pRoot->GetMemberCount();
 
@@ -1450,14 +1450,14 @@ bool SamplePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vec
 	return true;
 }
 
-bool SamplePlugin::ClearLanguages(char *error, size_t maxlen)
+bool Sample_Plugin::ClearLanguages(char *error, size_t maxlen)
 {
 	m_vecLanguages.Purge();
 
 	return true;
 }
 
-bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
+bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 {
 	std::string sTranslationsFilesPath = m_sBaseGameDirectory + CORRECT_PATH_SEPARATOR_S SAMPLE_GAME_TRANSLATIONS_FILES;
 
@@ -1525,14 +1525,14 @@ bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::ClearTranslations(char *error, size_t maxlen)
+bool Sample_Plugin::ClearTranslations(char *error, size_t maxlen)
 {
 	Translations::Purge();
 
 	return true;
 }
 
-bool SamplePlugin::ParseGameEvents()
+bool Sample_Plugin::ParseGameEvents()
 {
 	const char *pszPathID = SAMPLE_BASE_PATHID;
 
@@ -1589,7 +1589,7 @@ bool SamplePlugin::ParseGameEvents()
 	return true;
 }
 
-bool SamplePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
+bool Sample_Plugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
 {
 	int iMemberCount = pData->GetMemberCount();
 
@@ -1620,14 +1620,14 @@ bool SamplePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &ve
 	return iMemberCount;
 }
 
-bool SamplePlugin::ClearGameEvents()
+bool Sample_Plugin::ClearGameEvents()
 {
 	m_vecGameEvents.Purge();
 
 	return true;
 }
 
-bool SamplePlugin::HookGameEvents()
+bool Sample_Plugin::HookGameEvents()
 {
 	auto aWarnings = Logger::CreateWarningsScope();
 
@@ -1660,7 +1660,7 @@ bool SamplePlugin::HookGameEvents()
 	return true;
 }
 
-bool SamplePlugin::UnhookGameEvents()
+bool Sample_Plugin::UnhookGameEvents()
 {
 	if(g_pGameEventManager)
 	{
@@ -1670,7 +1670,7 @@ bool SamplePlugin::UnhookGameEvents()
 	return true;
 }
 
-void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
+void Sample_Plugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
 
@@ -1680,7 +1680,7 @@ void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const
 	}
 }
 
-void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
+void Sample_Plugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
 	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
@@ -1771,7 +1771,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 	RETURN_META(MRES_IGNORED);
 }
 
-void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
+void Sample_Plugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
 {
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
@@ -1780,7 +1780,7 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 	RETURN_META(MRES_IGNORED);
 }
 
-CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
+CServerSideClientBase *Sample_Plugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
@@ -1792,7 +1792,7 @@ CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
 
-bool SamplePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
+bool Sample_Plugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
 {
 	auto *pClient = META_IFACEPTR(CServerSideClientBase);
 
@@ -1801,7 +1801,7 @@ bool SamplePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_
 	RETURN_META_VALUE(MRES_IGNORED, true);
 }
 
-void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
+void Sample_Plugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 {
 	auto *pClient = META_IFACEPTR(CServerSideClientBase);
 
@@ -1810,7 +1810,7 @@ void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
-CBufferStringN<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
+CBufferStringN<1024> Sample_Plugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
 {
 	CBufferStringN<1024> sResult;
 
@@ -1822,7 +1822,7 @@ CBufferStringN<1024> SamplePlugin::DumpProtobufMessage(const ConcatLineString &a
 	return sResult;
 }
 
-void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
+void Sample_Plugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
 {
 	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
 	aConcat.AppendHandleToBuffer(sOutput, "Swap chain handle", aMessage.m_hSwapChain);
@@ -1833,7 +1833,7 @@ void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferS
 	aConcat.AppendToBuffer(sOutput, "Render height", aMessage.m_nRenderHeight);
 }
 
-void SamplePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
+void Sample_Plugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
 {
 	for(const auto &it : vecEntityList)
 	{
@@ -1841,7 +1841,7 @@ void SamplePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString
 	}
 }
 
-void SamplePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
+void Sample_Plugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Loop state");
 	DumpEngineLoopState(aConcat2, sOutput, aMessage.m_LoopState);
@@ -1849,12 +1849,12 @@ void SamplePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const Conc
 	aConcat.AppendToBuffer(sOutput, "Last tick", aMessage.m_bLastTick);
 }
 
-void SamplePlugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
+void Sample_Plugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Frame time", aMessage.m_flFrameTime);
 }
 
-void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
+void Sample_Plugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
 {
 	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
 	aConcat.AppendToBuffer(sOutput, "Player slot", pClient->GetPlayerSlot().Get());
@@ -1874,12 +1874,12 @@ void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBuffer
 	aConcat.AppendToBuffer(sOutput, "Is fully authenticated", pClient->IsFullyAuthenticated());
 }
 
-void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
+void Sample_Plugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
 {
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
-void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
+void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
 
@@ -1906,7 +1906,7 @@ void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *psz
 	delete pMessage;
 }
 
-void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
+void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
 {
 	auto *pSayText2Message = m_pSayText2Message;
 
@@ -1959,7 +1959,7 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 	delete pMessage;
 }
 
-void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
+void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
 	auto *pTextMsg = m_pTextMsgMessage;
 
@@ -2006,9 +2006,9 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 	delete pMessage;
 }
 
-void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
+void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
-	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &Sample_Plugin::OnConnectClientHook, true);
 
 	// Initialize & hook game evetns.
 	// Initialize network messages.
@@ -2065,18 +2065,18 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 	}
 }
 
-void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	if(pClient)
 	{
-		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &Sample_Plugin::OnProcessRespondCvarValueHook, false);
 
 		if(pClient->IsFakeClient())
 		{
 			return;
 		}
 
-		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &Sample_Plugin::OnDisconectClientHook, false);
 	}
 	else
 	{
@@ -2176,7 +2176,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 	aPlayer.OnConnected(pPlayer);
 }
 
-bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
+bool Sample_Plugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
 {
 	auto sFoundSymbol = FindConVarSymbol(aMessage.name().c_str());
 
@@ -2235,16 +2235,16 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 	return true;
 }
 
-void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
+void Sample_Plugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
 {
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &Sample_Plugin::OnProcessRespondCvarValueHook, false);
 
 	if(pClient->IsFakeClient())
 	{
 		return;
 	}
 
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &Sample_Plugin::OnDisconectClientHook, false);
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
@@ -2268,22 +2268,22 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 	aPlayer.OnDisconnected(pPlayer, eReason);
 }
 
-CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)
+CUtlSymbolLarge Sample_Plugin::GetConVarSymbol(const char *pszName)
 {
 	return m_tableConVars.AddString(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::FindConVarSymbol(const char *pszName) const
+CUtlSymbolLarge Sample_Plugin::FindConVarSymbol(const char *pszName) const
 {
 	return m_tableConVars.Find(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::GetLanguageSymbol(const char *pszName)
+CUtlSymbolLarge Sample_Plugin::GetLanguageSymbol(const char *pszName)
 {
 	return m_tableLanguages.AddString(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::FindLanguageSymbol(const char *pszName) const
+CUtlSymbolLarge Sample_Plugin::FindLanguageSymbol(const char *pszName) const
 {
 	return m_tableLanguages.Find(pszName);
 }

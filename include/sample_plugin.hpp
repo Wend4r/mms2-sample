@@ -25,8 +25,8 @@
 #	pragma once
 
 #	include <isample.hpp>
-#	include <sample/chat_command_system.hpp>
-#	include <sample/path_resolver.hpp>
+#	include <sample/chatcommandsystem.hpp>
+#	include <sample/pathresolver.hpp>
 #	include <sample/provider.hpp>
 #	include <concat.hpp>
 
@@ -65,11 +65,11 @@
 class CBasePlayerController;
 class INetworkMessageInternal;
 
-class SamplePlugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                           public Sample::ChatCommandSystem, public Sample::PathResolver, public Sample::Provider, virtual public Logger, public Translations
+class Sample_Plugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
+                            public Sample::ChatCommandSystem, public Sample::PathResolver, public Sample::Provider, virtual public Logger, public Translations
 {
 public:
-	SamplePlugin();
+	Sample_Plugin();
 
 public: // ISmmPlugin
 	bool Load(PluginId id, ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0, bool late = true) override;
@@ -98,7 +98,7 @@ public: // ISample
 
 	class CLanguage : public ISample::ILanguage
 	{
-		friend class SamplePlugin;
+		friend class Sample_Plugin;
 
 	public:
 		CLanguage(const CUtlSymbolLarge &sInitName = NULL, const char *pszInitCountryCode = "en");
@@ -114,11 +114,11 @@ public: // ISample
 	private:
 		CUtlSymbolLarge m_sName;
 		CUtlString m_sCountryCode;
-	}; // SamplePlugin::CLanguage
+	}; // Sample_Plugin::CLanguage
 
 	class CPlayerBase : public IPlayerBase
 	{
-		friend class SamplePlugin;
+		friend class Sample_Plugin;
 
 	public:
 		CPlayerBase();
@@ -161,7 +161,7 @@ public: // ISample
 
 	private:
 		TranslatedPhrase m_aYourArgumentPhrase;
-	}; // SamplePlugin::CPlayerBase
+	}; // Sample_Plugin::CPlayerBase
 
 	const ISample::ILanguage *GetServerLanguage() const override;
 	const ISample::ILanguage *GetLanguageByName(const char *psz) const override;
@@ -253,7 +253,7 @@ public: // Event actions.
 	bool UnhookGameEvents();
 
 private: // Commands.
-	CON_COMMAND_MEMBER_F(SamplePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
+	CON_COMMAND_MEMBER_F(Sample_Plugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 private: // ConVars. See the constructor
 	ConVar<bool> m_aEnableFrameDetailsConVar;
@@ -303,7 +303,7 @@ private: // Language (hash)map.
 	CUtlMap<CUtlSymbolLarge, CLanguage> m_mapLanguages;
 
 private: // Fields.
-	CGameSystemStaticFactory<SamplePlugin> *m_pFactory = NULL;
+	CGameSystemStaticFactory<Sample_Plugin> *m_pFactory = NULL;
 
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;
@@ -315,9 +315,9 @@ private: // Fields.
 	CUtlVector<CLanguage> m_vecLanguages;
 
 	CPlayerBase m_aPlayers[ABSOLUTE_PLAYER_LIMIT];
-}; // SamplePlugin
+}; // Sample_Plugin
 
-extern SamplePlugin *g_pSamplePlugin;
+extern Sample_Plugin *g_pSamplePlugin;
 
 PLUGIN_GLOBALVARS();
 

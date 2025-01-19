@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample/chat_command_system.hpp>
+#include <sample/chatcommandsystem.hpp>
 
 #include <tier1/utlrbtree.h>
 
