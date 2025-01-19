@@ -226,10 +226,17 @@ bool Sample_Plugin::Unload(char *error, size_t maxlen)
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &Sample_Plugin::OnStartupServerHook, true);
 
 	UnhookGameEvents();
-
 	ClearGameEvents();
-	ClearLanguages();
-	ClearTranslations();
+
+	if(!ClearLanguages(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!ClearTranslations(error, maxlen))
+	{
+		return false;
+	}
 
 	if(!UnloadProvider(error, maxlen))
 	{
