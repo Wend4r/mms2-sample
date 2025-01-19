@@ -954,9 +954,9 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 
 	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		int iMemberCount = pEventDataKeys->GetMemberCount();
+		int nMemberCount = pEventDataKeys->GetMemberCount();
 
-		if(!iMemberCount)
+		if(!nMemberCount)
 		{
 			Logger::WarningFormat("No members at \"%s\" event\n", event->GetName());
 
@@ -969,17 +969,22 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 			aDetails.PushFormat("\"%s\":", event->GetName());
 			aDetails.Push("{");
 
-			for(KV3MemberId_t id = 0; id < iMemberCount; id++)
-			{
-				const char *pEventMemberName = pEventDataKeys->GetMemberName(id);
+			KV3MemberId_t i = 0;
 
-				KeyValues3 *pEventMember = pEventDataKeys->GetMember(id);
+			do
+			{
+				const char *pEventMemberName = pEventDataKeys->GetMemberName(i);
+
+				KeyValues3 *pEventMember = pEventDataKeys->GetMember(i);
 
 				CBufferStringN<128> sEventMember;
 
 				pEventMember->ToString(sEventMember, KV3_TO_STRING_DONT_CLEAR_BUFF);
 				aDetails.PushFormat("\t\"%s\":\t%s", pEventMemberName, sEventMember.Get());
+
+				i++;
 			}
+			while(i < nMemberCount);
 
 			aDetails.Push("}");
 			aDetails.Send([&](const CUtlString &sMessage)
@@ -1419,9 +1424,9 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 
 bool Sample_Plugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
 {
-	int iMemberCount = pRoot->GetMemberCount();
+	int nMemberCount = pRoot->GetMemberCount();
 
-	if(!iMemberCount)
+	if(!nMemberCount)
 	{
 		vecMessages.AddToTail("No members");
 
@@ -1434,18 +1439,23 @@ bool Sample_Plugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &ve
 
 	m_aServerLanguage.SetCountryCode(pszServerContryCode);
 
-	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
+	KV3MemberId_t i = 0;
+
+	do
 	{
-		const char *pszMemberName = pRoot->GetMemberName(n);
+		const char *pszMemberName = pRoot->GetMemberName(i);
 
 		auto sMemberSymbol = GetLanguageSymbol(pszMemberName);
 
-		const KeyValues3 *pMember = pRoot->GetMember(n);
+		const KeyValues3 *pMember = pRoot->GetMember(i);
 
 		const char *pszMemberValue = pMember->GetString(pszServerContryCode);
 
 		m_mapLanguages.Insert(sMemberSymbol, {sMemberSymbol, pszMemberValue});
+
+		i++;
 	}
+	while(i < nMemberCount);
 
 	return true;
 }
@@ -1591,9 +1601,9 @@ bool Sample_Plugin::ParseGameEvents()
 
 bool Sample_Plugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
 {
-	int iMemberCount = pData->GetMemberCount();
+	int nMemberCount = pData->GetMemberCount();
 
-	if(!iMemberCount)
+	if(!nMemberCount)
 	{
 		vecMessages.AddToTail("No members");
 
@@ -1602,22 +1612,27 @@ bool Sample_Plugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &v
 
 	CUtlString sMessage;
 
-	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
+	KV3MemberId_t i = 0;
+
+	do
 	{
-		const char *pszEvent = pData->GetMemberName(n);
+		const char *pszEvent = pData->GetMemberName(i);
 
 		if(!pszEvent)
 		{
-			sMessage.Format("No member name at #%d", n);
+			sMessage.Format("No member name at #%d", i);
 			vecMessages.AddToTail(sMessage);
 
 			continue;
 		}
 
 		m_vecGameEvents.AddToTail(pszEvent);
-	}
 
-	return iMemberCount;
+		i++;
+	}
+	while(i < nMemberCount);
+
+	return true;
 }
 
 bool Sample_Plugin::ClearGameEvents()
