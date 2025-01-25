@@ -361,11 +361,11 @@ ISample::IPlayerBase *Sample_Plugin::GetPlayerBase(const CPlayerSlot &aSlot)
 
 Sample_Plugin::CPlayerBase &Sample_Plugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
-	int iClient = aSlot.Get();
+	int iSlot = aSlot.Get();
 
-	Assert(0 <= iClient && iClient < sizeof(m_aPlayers));
+	Assert(0 <= iSlot && iSlot < sizeof(m_aPlayers));
 
-	return m_aPlayers[iClient];
+	return m_aPlayers[iSlot];
 }
 
 bool Sample_Plugin::Init()
