@@ -38,7 +38,7 @@ Sample::PathResolver::PathResolver(const void *pInitModule)
 
 bool Sample::PathResolver::Init()
 {
-	m_sModuleFilename = DynLibUtils::CModule(m_pModule).GetModulePath();
+	m_sModuleFilename = DynLibUtils::CModule(m_pModule).GetPath();
 
 	return true;
 }

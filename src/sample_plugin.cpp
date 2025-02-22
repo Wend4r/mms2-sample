@@ -43,7 +43,7 @@
 #include <usermessages.pb.h>
 #include <connectionless_netmessages.pb.h>
 
-SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
+SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandRef, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, void *, C2S_CONNECT_Message *, const char *, const byte *, int, bool);
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
@@ -716,7 +716,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ActiveSpawnGroupChanged)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPostDataUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -724,7 +724,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPostDataUpdate)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -742,7 +742,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -761,7 +761,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -781,7 +781,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPostRender)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -789,7 +789,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPostRender)
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -808,7 +808,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -827,7 +827,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPreClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -835,7 +835,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPreClientUpdate)
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -854,7 +854,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -874,7 +874,7 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 
 GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -892,7 +892,7 @@ GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 
 GS_EVENT_MEMBER(Sample_Plugin, OutOfGameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.GetValue() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -950,7 +950,7 @@ GS_EVENT_MEMBER(Sample_Plugin, RestoreGame)
 
 void Sample_Plugin::FireGameEvent(IGameEvent *event)
 {
-	if(!m_aEnableGameEventsDetaillsConVar.GetValue())
+	if(!m_aEnableGameEventsDetaillsConVar.Get())
 	{
 		return;
 	}
@@ -1707,11 +1707,11 @@ void Sample_Plugin::OnReloadGameDataCommand(const CCommandContext &context, cons
 	}
 }
 
-void Sample_Plugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
+void Sample_Plugin::OnDispatchConCommandHook(ConCommandRef hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
 	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
-		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
+		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetAccessIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
 	}
 
 	auto aPlayerSlot = aContext.GetPlayerSlot();
@@ -1808,7 +1808,7 @@ void Sample_Plugin::OnStartupServerHook(const GameSessionConfiguration_t &config
 }
 
 CServerSideClientBase *Sample_Plugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
-                                                         const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
 

@@ -256,12 +256,12 @@ private: // Commands.
 	CON_COMMAND_MEMBER_F(Sample_Plugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 private: // ConVars. See the constructor
-	ConVar<bool> m_aEnableFrameDetailsConVar;
-	ConVar<bool> m_aEnableGameEventsDetaillsConVar;
+	CConVar<bool> m_aEnableFrameDetailsConVar;
+	CConVar<bool> m_aEnableGameEventsDetaillsConVar;
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
-	void OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs);
+	void OnDispatchConCommandHook(ConCommandRef hCommand, const CCommandContext &aContext, const CCommand &aArgs);
 	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	bool OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
