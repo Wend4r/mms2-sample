@@ -31,6 +31,16 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 			m_ppFirst = aAddress.RCast<decltype(m_ppFirst)>();
 		}});
 
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&IGameSystem::sm_GameSystemFactories"), {[&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		{
+			m_pGameSystemFactories = aAddress.RCast<decltype(m_pGameSystemFactories)>();
+		}});
+
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_GameSystems"), {[&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		{
+			m_pGameSystems = aAddress.RCast<decltype(m_pGameSystems)>();
+		}});
+
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("&IGameSystem::sm_pEventDispatcher"), {[&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
 		{
 			m_ppEventDispatcher = aAddress.RCast<decltype(m_ppEventDispatcher)>();
@@ -48,12 +58,23 @@ bool Sample::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, KeyV
 void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 {
 	m_ppFirst = nullptr;
+	m_pGameSystemFactories = nullptr;
 	m_ppEventDispatcher = nullptr;
 }
 
 CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstPointer() const
 {
 	return m_ppFirst;
+}
+
+CUtlStringMap<IGameSystem::FactoryInfo_t> *Sample::Provider::GameDataStorage::CGameSystem::GetFactories() const
+{
+	return m_pGameSystemFactories;
+}
+
+CUtlVector<AddedGameSystem_t> *Sample::Provider::GameDataStorage::CGameSystem::GetList() const
+{
+	return m_pGameSystems;
 }
 
 CGameSystemEventDispatcher **Sample::Provider::GameDataStorage::CGameSystem::GetEventDispatcher() const

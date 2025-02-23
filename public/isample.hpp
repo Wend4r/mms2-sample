@@ -26,6 +26,7 @@
 #	pragma once
 
 #	include <playerslot.h>
+#	include <igamesystem.h>
 
 #	define SAMPLE_INTERFACE_NAME "Sample v1.0.0"
 
@@ -34,6 +35,10 @@ class CBaseGameSystemFactory;
 class CGameSystemEventDispatcher;
 class CServerSideClient;
 class IGameEventManager2;
+template<class T> class CUtlStringMap;
+template<class T, class I> class CUtlMemory;
+template<class T, class I, class A> class CUtlVector;
+struct AddedGameSystem_t;
 
 /**
  * @brief A sample interface.
@@ -55,6 +60,20 @@ public:
 	 * @return              A double pointer to a first game system.
 	 */
 	virtual CBaseGameSystemFactory **GetFirstGameSystemPointer() const = 0;
+
+	/**
+	 * @brief Gets game system factories.
+	 * 
+	 * @return              A pointer to a string map of game system factories.
+	 */
+	virtual CUtlStringMap<IGameSystem::FactoryInfo_t> *GetGameSystemFactoriesPointer() const = 0;
+
+	/**
+	 * @brief Gets game systems.
+	 * 
+	 * @return              A pointer to a list of game systems.
+	 */
+	virtual CUtlVector<AddedGameSystem_t, int, CUtlMemory<AddedGameSystem_t, int>> *GetGameSystemsPointer() const = 0;
 
 	/**
 	 * @brief Gets a game system event dispatcher.

@@ -32,7 +32,9 @@
 #	include <tier0/utlscratchmemory.h>
 #	include <tier1/utldelegateimpl.h>
 #	include <tier1/utlmap.h>
+#	include <tier1/utlstringmap.h>
 #	include <entity2/entitykeyvalues.h>
+#	include <igamesystem.h>
 
 #	include <gamedata.hpp> // GameData
 
@@ -44,6 +46,7 @@
 class CBaseGameSystemFactory;
 class CGameEventManager;
 class CGameSystemEventDispatcher;
+struct AddedGameSystem_t;
 
 namespace Sample
 {
@@ -110,6 +113,8 @@ namespace Sample
 
 			public:
 				CBaseGameSystemFactory **GetFirstPointer() const;
+				CUtlStringMap<IGameSystem::FactoryInfo_t> *GetFactories() const;
+				CUtlVector<AddedGameSystem_t> *GetList() const;
 				CGameSystemEventDispatcher **GetEventDispatcher() const;
 
 			private:
@@ -118,6 +123,8 @@ namespace Sample
 
 			private: // Addresses.
 				CBaseGameSystemFactory **m_ppFirst = nullptr;
+				CUtlStringMap<IGameSystem::FactoryInfo_t> *m_pGameSystemFactories = nullptr;
+				CUtlVector<AddedGameSystem_t> *m_pGameSystems = nullptr;
 				CGameSystemEventDispatcher **m_ppEventDispatcher = nullptr;
 			}; // Sample::Provider::CGameSystem
 

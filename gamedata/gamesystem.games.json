@@ -20,6 +20,36 @@
 				}
 			},
 
+			"&IGameSystem::sm_GameSystemFactories":
+			{
+				"signature": "IGameSystem::InitAllSystems",
+
+				"win64":
+				{
+					"read_offs32": 177
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 211
+				}
+			},
+
+			"&s_GameSystems":
+			{
+				"signature": "IGameSystem::LoopInitAllSystems",
+
+				"win64":
+				{
+					"read_offs32": 102
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 67
+				}
+			},
+
 			"&IGameSystem::sm_pEventDispatcher":
 			{
 				"signature": "IGameSystem::LoopInitAllSystems",

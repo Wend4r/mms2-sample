@@ -337,6 +337,16 @@ CBaseGameSystemFactory **Sample_Plugin::GetFirstGameSystemPointer() const
 	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
+CUtlStringMap<IGameSystem::FactoryInfo_t> *Sample_Plugin::GetGameSystemFactoriesPointer() const
+{
+	return GetGameDataStorage().GetGameSystem().GetFactories();
+}
+
+CUtlVector<AddedGameSystem_t> *Sample_Plugin::GetGameSystemsPointer() const
+{
+	return GetGameDataStorage().GetGameSystem().GetList();
+}
+
 CGameSystemEventDispatcher **Sample_Plugin::GetGameSystemEventDispatcherPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetEventDispatcher();
@@ -1217,10 +1227,10 @@ bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 	{
 		m_pFactory->Shutdown();
 
+		const auto *pGameSystem = m_pFactory->GetStaticGameSystem();
+
 		// Clean up smart dispatcher listener callbacks.
 		{
-			const auto *pGameSystem = m_pFactory->GetStaticGameSystem();
-
 			auto **ppDispatcher = GetGameSystemEventDispatcherPointer();
 
 			Assert(ppDispatcher);
@@ -1253,6 +1263,34 @@ bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 					{
 						funcListeners.FastRemove(i);
 					}
+				}
+			}
+		}
+
+		// Clean up the added game system.
+		{
+			auto *pGameSystemFactories = GetGameSystemFactoriesPointer();
+
+			Assert(pGameSystemFactories);
+
+			pGameSystemFactories->FindAndRemove(pGameSystem->GetName());
+		}
+
+		// Clean up the game systems.
+		{
+			auto *pGameSystems = GetGameSystemsPointer();
+
+			Assert(pGameSystems);
+
+			auto &vecGameSystems = *pGameSystems;
+
+			FOR_EACH_VEC_BACK(vecGameSystems, i)
+			{
+				if(pGameSystem == vecGameSystems[i].m_pGameSystem)
+				{
+					vecGameSystems.FastRemove(i);
+
+					break;
 				}
 			}
 		}
