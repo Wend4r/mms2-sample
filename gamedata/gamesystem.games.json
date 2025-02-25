@@ -41,12 +41,12 @@
 
 				"win64":
 				{
-					"read_offs32": 102
+					"read_offs32": 384
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 67
+					"read_offs32": 192
 				}
 			},
 
