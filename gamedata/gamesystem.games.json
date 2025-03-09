@@ -63,6 +63,21 @@
 				{
 					"read_offs32": 586
 				}
+			},
+
+			"&s_outOfGameEventDispatcher":
+			{
+				"signature": "IGameSystem::InitAllSystems",
+
+				"win64":
+				{
+					"read_offs32": 411
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 999
+				}
 			}
 		},
 

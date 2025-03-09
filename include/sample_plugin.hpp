@@ -96,6 +96,7 @@ public: // ISample
 	CUtlStringMap<IGameSystem::FactoryInfo_t> *GetGameSystemFactoriesPointer() const override;
 	CUtlVector<AddedGameSystem_t> *GetGameSystemsPointer() const override;
 	CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const override;
+	CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
 
 	class CLanguage : public ISample::ILanguage

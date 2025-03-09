@@ -83,6 +83,13 @@ public:
 	virtual CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const = 0;
 
 	/**
+	 * @brief Gets a out of game system event dispatcher.
+	 * 
+	 * @return              A pointer to an out of game system event dispatcher.
+	 */
+	virtual CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const = 0;
+
+	/**
 	 * @brief Gets a game event manager.
 	 * 
 	 * @return              A double pointer to a game event manager.

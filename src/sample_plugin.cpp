@@ -352,6 +352,11 @@ CGameSystemEventDispatcher **Sample_Plugin::GetGameSystemEventDispatcherPointer(
 	return GetGameDataStorage().GetGameSystem().GetEventDispatcher();
 }
 
+CGameSystemEventDispatcher *Sample_Plugin::GetOutOfGameEventDispatcher() const
+{
+	return GetGameDataStorage().GetGameSystem().GetOutOfGameEventDispatcher();
+}
+
 IGameEventManager2 **Sample_Plugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
@@ -1227,7 +1232,7 @@ bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 	{
 		m_pFactory->Shutdown();
 
-		const auto *pGameSystem = m_pFactory->GetStaticGameSystem();
+		auto *pGameSystem = m_pFactory->GetStaticGameSystem();
 
 		// Clean up smart dispatcher listener callbacks.
 		{
@@ -1237,34 +1242,17 @@ bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 
 			auto *pDispatcher = *ppDispatcher;
 
-			if(pDispatcher)
-			{
-				auto *pfuncListeners = pDispatcher->m_funcListeners;
+			Assert(pDispatcher);
 
-				Assert(pfuncListeners);
+			pDispatcher->UnregisterListener(pGameSystem);
+		}
 
-				auto &funcListeners = *pfuncListeners;
+		{
+			auto *pDispatcher2 = GetOutOfGameEventDispatcher();
 
-				FOR_EACH_VEC_BACK(funcListeners, i)
-				{
-					auto &vecListeners = funcListeners[i];
+			Assert(pDispatcher2);
 
-					FOR_EACH_VEC_BACK(vecListeners, j)
-					{
-						if(pGameSystem == vecListeners[j])
-						{
-							vecListeners.FastRemove(j);
-
-							break;
-						}
-					}
-
-					if(!vecListeners.Count())
-					{
-						funcListeners.FastRemove(i);
-					}
-				}
-			}
+			pDispatcher2->UnregisterListener(pGameSystem);
 		}
 
 		// Clean up the added game system.

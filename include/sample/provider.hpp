@@ -116,6 +116,7 @@ namespace Sample
 				CUtlStringMap<IGameSystem::FactoryInfo_t> *GetFactories() const;
 				CUtlVector<AddedGameSystem_t> *GetList() const;
 				CGameSystemEventDispatcher **GetEventDispatcher() const;
+				CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
@@ -126,6 +127,7 @@ namespace Sample
 				CUtlStringMap<IGameSystem::FactoryInfo_t> *m_pGameSystemFactories = nullptr;
 				CUtlVector<AddedGameSystem_t> *m_pGameSystems = nullptr;
 				CGameSystemEventDispatcher **m_ppEventDispatcher = nullptr;
+				CGameSystemEventDispatcher *m_pOutOfGameEventDispatcher = nullptr;
 			}; // Sample::Provider::CGameSystem
 
 			class CSource2Server

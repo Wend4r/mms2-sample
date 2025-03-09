@@ -46,6 +46,11 @@ Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
 			m_ppEventDispatcher = aAddress.RCast<decltype(m_ppEventDispatcher)>();
 		}});
 
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_outOfGameEventDispatcher"), {[&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		{
+			m_pOutOfGameEventDispatcher = aAddress.RCast<decltype(m_pOutOfGameEventDispatcher)>();
+		}});
+
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
 }
@@ -60,6 +65,7 @@ void Sample::Provider::GameDataStorage::CGameSystem::Reset()
 	m_ppFirst = nullptr;
 	m_pGameSystemFactories = nullptr;
 	m_ppEventDispatcher = nullptr;
+	m_pOutOfGameEventDispatcher = nullptr;
 }
 
 CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstPointer() const
@@ -80,4 +86,9 @@ CUtlVector<AddedGameSystem_t> *Sample::Provider::GameDataStorage::CGameSystem::G
 CGameSystemEventDispatcher **Sample::Provider::GameDataStorage::CGameSystem::GetEventDispatcher() const
 {
 	return m_ppEventDispatcher;
+}
+
+CGameSystemEventDispatcher *Sample::Provider::GameDataStorage::CGameSystem::GetOutOfGameEventDispatcher() const
+{
+	return m_pOutOfGameEventDispatcher;
 }
