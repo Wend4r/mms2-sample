@@ -19,11 +19,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PATH_RESOLVER_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PATH_RESOLVER_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PATHRESOLVER_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PATHRESOLVER_HPP_
 
 #	define SAMPLE_PATH_RESOLVER_ADDONS_DIR "addons"
 #	define SAMPLE_PATH_RESOLVER_BINARY_DIR "bin"
+
+#	include <dynlibutils/module.hpp>
 
 #	include <stddef.h>
 
@@ -31,23 +33,37 @@
 
 namespace Sample
 {
-	class PathResolver
+	class CPathResolver
 	{
 	public:
-		PathResolver(const void *pInitModule);
+		bool Init(void *pModuleHandle) { m_aModule.InitFromMemory(pModuleHandle); return true; }
 
 	public:
-		bool Init();
-		void Clear();
+		std::string_view GetAbsoluteModuleFilename() { return m_aModule.GetPath(); }
+		std::string_view Extract(std::string_view svStartMarker = SAMPLE_PATH_RESOLVER_ADDONS_DIR, std::string_view svEndMarker = SAMPLE_PATH_RESOLVER_BINARY_DIR)
+		{
+			auto svFullPath = GetAbsoluteModuleFilename();
 
-	public:
-		std::string_view GetAbsoluteModuleFilename();
-		std::string_view ExtractSubpath(std::string_view sStartMarker = SAMPLE_PATH_RESOLVER_ADDONS_DIR, std::string_view sEndMarker = SAMPLE_PATH_RESOLVER_BINARY_DIR);
+			std::size_t nStartPosition = svFullPath.find(svStartMarker);
+
+			if(nStartPosition == std::string_view::npos)
+			{
+				return "";
+			}
+
+			std::size_t nEndPosition = svFullPath.find(svEndMarker, nStartPosition);
+
+			if(nEndPosition == std::string_view::npos)
+			{
+				return "";
+			}
+
+			return svFullPath.substr(nStartPosition, nEndPosition - (nStartPosition + 1));;
+		}
 
 	private:
-		const void *m_pModule;
-		std::string_view m_sModuleFilename;
+		DynLibUtils::CModule m_aModule;
 	};
 };
 
-#endif //_INCLUDE_METAMOD_SOURCE_SAMPLE_PATH_RESOLVER_HPP_
+#endif //_INCLUDE_METAMOD_SOURCE_SAMPLE_PATHRESOLVER_HPP_

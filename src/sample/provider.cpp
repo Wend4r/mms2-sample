@@ -152,7 +152,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 	CUtlString sError;
 
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sError, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sError, NULL, pszPathID}, g_KV3Format_Generic});
 
 	for(const auto &aConfig : aConfigs)
 	{

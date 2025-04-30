@@ -24,7 +24,8 @@
 #include <tier1/utlrbtree.h>
 
 Sample::ChatCommandSystem::ChatCommandSystem()
- :  Logger(GetName(), NULL, 0, LV_DEFAULT, SAMPLE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR), 
+ :  CLogger(GetName(), NULL, 0, LV_DEFAULT, SAMPLE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR), 
+
     m_mapCallbacks(DefLessFunc(const CUtlSymbolLarge))
 {
 }
@@ -72,9 +73,9 @@ bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const 
 
 	if(!vecArgs.Count())
 	{
-		if(Logger::IsChannelEnabled(LS_DETAILED))
+		if(CLogger::IsChannelEnabled(LS_DETAILED))
 		{
-			Logger::Detailed("Chat command arguments is empty\n");
+			CLogger::Detailed("Chat command arguments is empty\n");
 		}
 
 		return false;
@@ -86,17 +87,18 @@ bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const 
 
 	if(iFound == m_mapCallbacks.InvalidIndex())
 	{
-		if(Logger::IsChannelEnabled(LS_DETAILED))
+		if(CLogger::IsChannelEnabled(LS_DETAILED))
 		{
-			Logger::DetailedFormat("Can't be found \"%s\" command\n", pszName);
+			CLogger::DetailedFormat("Can't be found \"%s\" command\n", pszName);
 		}
 
 		return false;
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat(u8"Handling \"%s\" command…\n", pszName);
+		//TODO: CLogger::DetailedFormat(u8"Handling \"%s\" command…\n", pszName);
+		CLogger::DetailedFormat("Handling \"%s\" command…\n", pszName);
 	}
 
 	OnCallback_t it = m_mapCallbacks[iFound];

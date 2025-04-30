@@ -20,3 +20,6 @@
 [submodule "Translations"]
 	path = external/translations
 	url = https://github.com/Wend4r/s2u-translations.git
+[submodule "Concat"]
+	path = external/concat
+	url = https://github.com/Wend4r/s2u-concat.git

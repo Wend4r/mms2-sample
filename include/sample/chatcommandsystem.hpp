@@ -39,7 +39,7 @@
 
 namespace Sample
 {
-	class ChatCommandSystem : virtual public Logger
+	class ChatCommandSystem : virtual public CLogger
 	{
 	public:
 		ChatCommandSystem();

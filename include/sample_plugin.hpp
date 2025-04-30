@@ -36,7 +36,6 @@
 #	include <translations.hpp>
 
 #	include <ISmmPlugin.h>
-
 #	include <bitvec.h>
 #	include <const.h>
 #	include <igameevents.h>
@@ -45,12 +44,14 @@
 #	include <iloopmode.h>
 #	include <iserver.h>
 #	include <netmessages.h>
+#	include <network_connection.pb.h>
 #	include <playerslot.h>
 #	include <tier0/bufferstring.h>
 #	include <tier0/strtools.h>
 #	include <tier1/convar.h>
+#	include <tier1/utlmap.h>
+#	include <tier1/utlsymbollarge.h>
 #	include <tier1/utlvector.h>
-#	include <network_connection.pb.h>
 
 #	define SAMPLE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
 
@@ -66,7 +67,7 @@ class CBasePlayerController;
 class INetworkMessageInternal;
 
 class Sample_Plugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                            public Sample::ChatCommandSystem, public Sample::PathResolver, public Sample::Provider, virtual public Logger, public Translations
+                            public Sample::ChatCommandSystem, public Sample::CPathResolver, public Sample::Provider, virtual public CLogger, public Translations
 {
 public:
 	Sample_Plugin();
@@ -104,15 +105,15 @@ public: // ISample
 		friend class Sample_Plugin;
 
 	public:
-		CLanguage(const CUtlSymbolLarge &sInitName = NULL, const char *pszInitCountryCode = "en");
+		CLanguage(CUtlSymbolLarge sInitName = CUtlSymbolLarge(), const char *pszInitCountryCode = "en") : m_sName(sInitName), m_sCountryCode(pszInitCountryCode) {}
 
 	public:
-		const char *GetName() const override;
-		const char *GetCountryCode() const override;
+		const char *GetName() const override { return m_sName.String(); };
+		const char *GetCountryCode() const override { return m_sCountryCode; };
 
 	protected:
-		void SetName(const CUtlSymbolLarge &sInitName);
-		void SetCountryCode(const char *psz);
+		void SetName(const CUtlSymbolLarge &symbolLarge) { m_sName = symbolLarge; };
+		void SetCountryCode(const char *psz) { m_sCountryCode = psz; };
 
 	private:
 		CUtlSymbolLarge m_sName;
@@ -306,11 +307,11 @@ private: // Language (hash)map.
 	CUtlMap<CUtlSymbolLarge, CLanguage> m_mapLanguages;
 
 private: // Fields.
-	CGameSystemStaticFactory<Sample_Plugin> *m_pFactory = NULL;
+	CGameSystemStaticFactory<Sample_Plugin> *m_pFactory;
 
-	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
-	INetworkMessageInternal *m_pSayText2Message = NULL;
-	INetworkMessageInternal *m_pTextMsgMessage = NULL;
+	INetworkMessageInternal *m_pGetCvarValueMessage;
+	INetworkMessageInternal *m_pSayText2Message;
+	INetworkMessageInternal *m_pTextMsgMessage;
 
 	CUtlVector<CUtlString> m_vecGameEvents;
 

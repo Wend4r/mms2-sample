@@ -40,6 +40,7 @@
 #include <serversideclient.h>
 #include <shareddefs.h>
 #include <tier0/commonmacros.h>
+#include <tier0/icommandline.h>
 #include <usermessages.pb.h>
 #include <connectionless_netmessages.pb.h>
 
@@ -75,16 +76,21 @@ const ConcatLineString s_aEmbed2Concat =
 PLUGIN_EXPOSE(Sample_Plugin, s_aSamplePlugin);
 
 Sample_Plugin::Sample_Plugin()
- :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
+ :  CLogger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
     }, 0, LV_DETAILED, SAMPLE_LOGGINING_COLOR),
-    PathResolver(this),
 
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
     m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true),
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
-    m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
+    m_mapLanguages(DefLessFunc(const CUtlSymbolLarge)),
+
+    m_pFactory(NULL),
+
+    m_pGetCvarValueMessage(NULL),
+    m_pSayText2Message(NULL),
+    m_pTextMsgMessage(NULL)
 {
 	// Register chat commands.
 	Sample::ChatCommandSystem::Register("sample", {[&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
@@ -109,7 +115,7 @@ Sample_Plugin::Sample_Plugin()
 		}
 		else
 		{
-			Logger::Warning("Not found a your argument phrase\n");
+			CLogger::Warning("Not found a your argument phrase\n");
 		}
 	}});
 }
@@ -118,19 +124,19 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 {
 	PLUGIN_SAVEVARS();
 
-	Logger::MessageFormat("Starting %s plugin...\n", GetName());
+	CLogger::MessageFormat("Starting %s plugin...\n", GetName());
 
 	if(!InitGlobals(ismm, error, maxlen))
 	{
 		return false;
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sMessage;
 
 		DumpGlobals(s_aEmbedConcat, sMessage);
-		Logger::Detailed(sMessage);
+		CLogger::Detailed(sMessage);
 	}
 
 	ConVar_Register(FCVAR_RELEASE | FCVAR_GAMEDLL);
@@ -140,13 +146,13 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 		return false;
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sMessage;
 
 		sMessage.Insert(0, "Path resolver:\n");
 		s_aEmbedConcat.AppendToBuffer(sMessage, "Base game directory", m_sBaseGameDirectory.c_str());
-		Logger::Detailed(sMessage);
+		CLogger::Detailed(sMessage);
 	}
 
 	if(!InitProvider(error, maxlen))
@@ -203,11 +209,11 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 	{
 		CBufferStringN<1024> sBuffer;
 
-		GetCPUInformation().GetDescription(&sBuffer);
-		Logger::Message(sBuffer);
+		GetCPUInformation().GetDescription(&sBuffer, CPUInformation::CPUDESC_ALL);
+		CLogger::Message(sBuffer);
 	}
 
-	Logger::MessageFormat("%s started!\n", GetName());
+	CLogger::MessageFormat("%s started!\n", GetName());
 
 	return true;
 }
@@ -385,9 +391,9 @@ Sample_Plugin::CPlayerBase &Sample_Plugin::GetPlayerData(const CPlayerSlot &aSlo
 
 bool Sample_Plugin::Init()
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 
 	return true;
@@ -395,23 +401,23 @@ bool Sample_Plugin::Init()
 
 void Sample_Plugin::PostInit()
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 void Sample_Plugin::Shutdown()
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GameInit)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -437,21 +443,21 @@ GS_EVENT_MEMBER(Sample_Plugin, GameInit)
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GameShutdown)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GamePostInit)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -475,21 +481,21 @@ GS_EVENT_MEMBER(Sample_Plugin, GamePostInit)
 			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GamePreShutdown)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, BuildGameSessionManifest)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -501,13 +507,13 @@ GS_EVENT_MEMBER(Sample_Plugin, BuildGameSessionManifest)
 			aConcat.AppendPointerToBuffer(sBuffer, "Resource manifest", msg.m_pResourceManifest);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -522,7 +528,7 @@ GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 
 	// Initialize a game resource.
@@ -531,30 +537,30 @@ GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 
 		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
 		{
-			Logger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sMessage);
 		}
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientFullySignedOn)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, Disconnect)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GameDeactivate)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -569,13 +575,13 @@ GS_EVENT_MEMBER(Sample_Plugin, GameDeactivate)
 			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupPrecache)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -594,13 +600,13 @@ GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupPrecache)
 			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupUncache)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -615,13 +621,13 @@ GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupUncache)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupLoad)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -635,13 +641,13 @@ GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupLoad)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupLoad)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -658,13 +664,13 @@ GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupLoad)
 			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupUnload)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -681,13 +687,13 @@ GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupUnload)
 			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupUnload)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -703,13 +709,13 @@ GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupUnload)
 			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ActiveSpawnGroupChanged)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -725,21 +731,21 @@ GS_EVENT_MEMBER(Sample_Plugin, ActiveSpawnGroupChanged)
 			aConcat.AppendHandleToBuffer(sBuffer, "Previous handle", msg.m_PreviousHandle);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPostDataUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -751,13 +757,13 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -770,13 +776,13 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -790,21 +796,21 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientPostRender)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -817,13 +823,13 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -836,21 +842,21 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerPreClientUpdate)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		Logger::DetailedFormat("%s\n", __FUNCTION__);
+		CLogger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -863,13 +869,13 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -883,13 +889,13 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -901,13 +907,13 @@ GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, OutOfGameFrameBoundary)
 {
-	if(m_aEnableFrameDetailsConVar.Get() && Logger::IsChannelEnabled(LS_DETAILED))
+	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -919,13 +925,13 @@ GS_EVENT_MEMBER(Sample_Plugin, OutOfGameFrameBoundary)
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, SaveGame)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -939,13 +945,13 @@ GS_EVENT_MEMBER(Sample_Plugin, SaveGame)
 			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
 GS_EVENT_MEMBER(Sample_Plugin, RestoreGame)
 {
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sBuffer;
 
@@ -959,7 +965,7 @@ GS_EVENT_MEMBER(Sample_Plugin, RestoreGame)
 			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
@@ -974,24 +980,24 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 
 	if(!pEventDataKeys)
 	{
-		Logger::WarningFormat("Data keys is empty at \"%s\" event\n", event->GetName());
+		CLogger::WarningFormat("Data keys is empty at \"%s\" event\n", event->GetName());
 
 		return;
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		int nMemberCount = pEventDataKeys->GetMemberCount();
 
 		if(!nMemberCount)
 		{
-			Logger::WarningFormat("No members at \"%s\" event\n", event->GetName());
+			CLogger::WarningFormat("No members at \"%s\" event\n", event->GetName());
 
 			return;
 		}
 
 		{
-			auto aDetails = Logger::CreateDetailsScope();
+			auto aDetails = CLogger::CreateDetailsScope();
 
 			aDetails.PushFormat("\"%s\":", event->GetName());
 			aDetails.Push("{");
@@ -1016,7 +1022,7 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 			aDetails.Push("}");
 			aDetails.Send([&](const CUtlString &sMessage)
 			{
-				Logger::Detailed(sMessage);
+				CLogger::Detailed(sMessage);
 			});
 		}
 	}
@@ -1024,7 +1030,7 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 
 bool Sample_Plugin::InitPathResolver(char *error, size_t maxlen)
 {
-	if(!PathResolver::Init())
+	if(!CPathResolver::Init(this))
 	{
 		if(error && maxlen)
 		{
@@ -1034,14 +1040,14 @@ bool Sample_Plugin::InitPathResolver(char *error, size_t maxlen)
 		return false;
 	}
 
-	m_sBaseGameDirectory = PathResolver::ExtractSubpath();
+	m_sBaseGameDirectory = CPathResolver::Extract();
 
 	return true;
 }
 
 bool Sample_Plugin::ClearPathResolver(char *error, size_t maxlen)
 {
-	PathResolver::Clear();
+	// ...
 
 	return true;
 }
@@ -1054,9 +1060,9 @@ bool Sample_Plugin::InitProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(Logger::IsChannelEnabled(LS_WARNING))
+		if(CLogger::IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = Logger::CreateWarningsScope();
+			auto aWarnings = CLogger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1067,7 +1073,7 @@ bool Sample_Plugin::InitProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
-				Logger::Warning(rgba, sContext);
+				CLogger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1091,9 +1097,9 @@ bool Sample_Plugin::LoadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(Logger::IsChannelEnabled(LS_WARNING))
+		if(CLogger::IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = Logger::CreateWarningsScope();
+			auto aWarnings = CLogger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1104,7 +1110,7 @@ bool Sample_Plugin::LoadProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
-				Logger::Warning(rgba, sContext);
+				CLogger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1128,9 +1134,9 @@ bool Sample_Plugin::UnloadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(Logger::IsChannelEnabled(LS_WARNING))
+		if(CLogger::IsChannelEnabled(LS_WARNING))
 		{
-			auto aWarnings = Logger::CreateWarningsScope();
+			auto aWarnings = CLogger::CreateWarningsScope();
 
 			FOR_EACH_VEC(vecMessages, i)
 			{
@@ -1141,7 +1147,7 @@ bool Sample_Plugin::UnloadProvider(char *error, size_t maxlen)
 
 			aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 			{
-				Logger::Warning(rgba, sContext);
+				CLogger::Warning(rgba, sContext);
 			});
 		}
 	}
@@ -1405,9 +1411,9 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 
 	CUtlString sMessage;
 
-	auto aWarnings = Logger::CreateWarningsScope();
+	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecLangugesFiles, pszLanguagesFiles, pszPathID);
 
@@ -1453,7 +1459,7 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Logger::Warning(sMessage);
+			CLogger::Warning(sMessage);
 		});
 	}
 
@@ -1518,9 +1524,9 @@ bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 
 	CUtlString sMessage;
 
-	auto aWarnings = Logger::CreateWarningsScope();
+	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecTranslationsFiles, pszTranslationsFiles, pszPathID);
 
@@ -1566,7 +1572,7 @@ bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Logger::Warning(sMessage);
+			CLogger::Warning(sMessage);
 		});
 	}
 
@@ -1590,9 +1596,9 @@ bool Sample_Plugin::ParseGameEvents()
 
 	CUtlString sMessage;
 
-	auto aWarnings = Logger::CreateWarningsScope();
+	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, SAMPLE_GAME_EVENTS_FILES, pszPathID);
 
@@ -1630,7 +1636,7 @@ bool Sample_Plugin::ParseGameEvents()
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Logger::Warning(sMessage);
+			CLogger::Warning(sMessage);
 		});
 	}
 
@@ -1682,7 +1688,7 @@ bool Sample_Plugin::ClearGameEvents()
 
 bool Sample_Plugin::HookGameEvents()
 {
-	auto aWarnings = Logger::CreateWarningsScope();
+	auto aWarnings = CLogger::CreateWarningsScope();
 
 	static const char *pszWarningFormat = "Failed to hook \"%s\" event";
 
@@ -1698,7 +1704,7 @@ bool Sample_Plugin::HookGameEvents()
 		}
 
 #ifdef DEBUG
-		Logger::DetailedFormat("Hooked \"%s\" event\n", pszEvent);
+		CLogger::DetailedFormat("Hooked \"%s\" event\n", pszEvent);
 #endif
 	}
 
@@ -1706,7 +1712,7 @@ bool Sample_Plugin::HookGameEvents()
 	{
 		aWarnings.Send([&](const CUtlString &sMessage)
 		{
-			Logger::Warning(sMessage);
+			CLogger::Warning(sMessage);
 		});
 	}
 
@@ -1729,15 +1735,15 @@ void Sample_Plugin::OnReloadGameDataCommand(const CCommandContext &context, cons
 
 	if(!LoadProvider(error, sizeof(error)))
 	{
-		Logger::WarningFormat("%s\n", error);
+		CLogger::WarningFormat("%s\n", error);
 	}
 }
 
 void Sample_Plugin::OnDispatchConCommandHook(ConCommandRef hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
-	if(Logger::IsChannelEnabled(LV_DETAILED))
+	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
-		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetAccessIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
+		CLogger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetAccessIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
 	}
 
 	auto aPlayerSlot = aContext.GetPlayerSlot();
@@ -1791,7 +1797,7 @@ void Sample_Plugin::OnDispatchConCommandHook(ConCommandRef hCommand, const CComm
 						sArg.Trim(' ');
 					}
 
-					if(Logger::IsChannelEnabled(LV_DETAILED))
+					if(CLogger::IsChannelEnabled(LV_DETAILED))
 					{
 						const auto &aConcat = s_aEmbedConcat, 
 						           &aConcat2 = s_aEmbed2Concat;
@@ -1810,7 +1816,7 @@ void Sample_Plugin::OnDispatchConCommandHook(ConCommandRef hCommand, const CComm
 							sBuffer.AppendConcat(ARRAYSIZE(pszMessageConcat), pszMessageConcat, NULL);
 						}
 
-						Logger::Detailed(sBuffer);
+						CLogger::Detailed(sBuffer);
 					}
 
 					Sample::ChatCommandSystem::Handle(aPlayerSlot, bIsSilent, vecArgs);
@@ -1936,7 +1942,7 @@ void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *ps
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
 
-	if(Logger::IsChannelEnabled(LV_DETAILED))
+	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1946,7 +1952,7 @@ void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *ps
 		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
 		aConcat.AppendToBuffer(sBuffer, "Cookie", iCookie);
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->ToPB<CSVCMsg_GetCvarValue>();
@@ -1956,14 +1962,16 @@ void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *ps
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pGetCvarValueMessage, pMessage, 0);
 
-	delete pMessage;
+#ifndef WIN32
+	Delete(pMessage);
+#endif
 }
 
 void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
 {
 	auto *pSayText2Message = m_pSayText2Message;
 
-	if(Logger::IsChannelEnabled(LV_DETAILED))
+	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -1994,7 +2002,7 @@ void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex,
 			aConcat.AppendStringToBuffer(sBuffer, "Parameter #4", pszParam4);
 		}
 
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pSayText2Message->AllocateMessage()->ToPB<CUserMessageSayText2>();
@@ -2009,14 +2017,16 @@ void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex,
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSayText2Message, pMessage, 0);
 
-	delete pMessage;
+#ifndef WIN32
+	Delete(pMessage);
+#endif
 }
 
 void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
 	auto *pTextMsg = m_pTextMsgMessage;
 
-	if(Logger::IsChannelEnabled(LV_DETAILED))
+	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -2025,7 +2035,7 @@ void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination,
 		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
 		aConcat.AppendToBuffer(sBuffer, "Parameter", pszParam);
-		Logger::Detailed(sBuffer);
+		CLogger::Detailed(sBuffer);
 	}
 
 	auto *pMessage = pTextMsg->AllocateMessage()->ToPB<CUserMessageTextMsg>();
@@ -2056,7 +2066,9 @@ void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination,
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pTextMsg, pMessage, 0);
 
-	delete pMessage;
+#ifndef WIN32
+	Delete(pMessage);
+#endif
 }
 
 void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
@@ -2074,16 +2086,16 @@ void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Ga
 		}
 		else
 		{
-			Logger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sMessage);
 		}
 
 		if(!RegisterNetMessages(sMessage, sizeof(sMessage)))
 		{
-			Logger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sMessage);
 		}
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -2114,7 +2126,7 @@ void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Ga
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
 
-		Logger::Detailed(sMessage);
+		CLogger::Detailed(sMessage);
 	}
 }
 
@@ -2138,7 +2150,7 @@ void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerS
 		return;
 	}
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
@@ -2181,7 +2193,7 @@ void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerS
 			aConcat.AppendBytesToBuffer(sMessage, "Auth ticket", pAuthTicket, nAuthTicketLength);
 		}
 
-		Logger::Detailed(sMessage);
+		CLogger::Detailed(sMessage);
 	}
 
 	if(!pClient)
@@ -2270,7 +2282,7 @@ bool Sample_Plugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, co
 	{
 		CUtlVector<CUtlString> vecMessages;
 
-		auto aWarnings = Logger::CreateWarningsScope();
+		auto aWarnings = CLogger::CreateWarningsScope();
 
 		aPlayer.TranslatePhrases(this, this->m_aServerLanguage, vecMessages);
 
@@ -2281,7 +2293,7 @@ bool Sample_Plugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, co
 
 		aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
 		{
-			Logger::Warning(rgba, sContext);
+			CLogger::Warning(rgba, sContext);
 		});
 	}
 
@@ -2299,7 +2311,7 @@ void Sample_Plugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDi
 
 	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &Sample_Plugin::OnDisconectClientHook, false);
 
-	if(Logger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
 		CBufferStringN<1024> sMessage;
 
@@ -2309,7 +2321,7 @@ void Sample_Plugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDi
 		DumpServerSideClient(aConcat, sMessage, pClient);
 		DumpDisconnectReason(aConcat, sMessage, eReason);
 
-		Logger::Detailed(sMessage);
+		CLogger::Detailed(sMessage);
 	}
 
 	auto *pPlayer = reinterpret_cast<CServerSideClient *>(pClient);
