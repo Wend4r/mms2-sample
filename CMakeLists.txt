@@ -36,11 +36,12 @@ set(SOURCE_SAMPLE_PROVIDER_DIR "${SOURCE_SAMPLE_DIR}/provider")
 set(SOURCE_SAMPLE_PROVIDER_GAMEDATA_DIR "${SOURCE_SAMPLE_PROVIDER_DIR}/gamedata")
 
 set(SOURCESDK_PROTOS
+	netmessages
 	network_connection
 	networkbasetypes
-	netmessages
-	connectionless_netmessages
 	networksystem_protomessages
+	connectionless_netmessages
+	gameevents
 	usermessages
 )
 
@@ -81,7 +82,6 @@ set(SOURCE_FILES
 	${SOURCE_SAMPLE_DIR}/chatcommandsystem.cpp
 	${SOURCE_SAMPLE_DIR}/playerbase.cpp
 	${SOURCE_SAMPLE_DIR}/provider.cpp
-	${SOURCE_DIR}/concat.cpp
 	${SOURCE_DIR}/globals.cpp
 	${SOURCE_DIR}/sample_plugin.cpp
 )

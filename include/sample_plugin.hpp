@@ -67,8 +67,10 @@ class CBasePlayerController;
 class INetworkMessageInternal;
 
 class Sample_Plugin final : public ISmmPlugin, public IMetamodListener, public ISample, public CBaseGameSystem, public IGameEventListener2, 
-                            public Sample::ChatCommandSystem, public Sample::CPathResolver, public Sample::Provider, virtual public CLogger, public Translations
+                            public Sample::ChatCommandSystem, public Sample::CPathResolver, public Sample::Provider, virtual public CLogger, public Translations, public Translations::IPhraseReplacer
 {
+	DECLARE_GAME_SYSTEM(); // CBaseGameSystem
+
 public:
 	Sample_Plugin();
 
@@ -97,7 +99,6 @@ public: // ISample
 	CUtlStringMap<IGameSystem::FactoryInfo_t> *GetGameSystemFactoriesPointer() const override;
 	CUtlVector<AddedGameSystem_t> *GetGameSystemsPointer() const override;
 	CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const override;
-	CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
 
 	class CLanguage : public ISample::ILanguage
@@ -218,6 +219,9 @@ public: // Path resolver.
 private:
 	std::string m_sBaseGameDirectory = SAMPLE_GAME_BASE_DIR;
 
+public: // Translations::IPhraseReplacer
+	CUtlString ProcessText(const CUtlString &sPhrase) const override { return sPhrase; }
+
 public: // Utils.
 	bool InitProvider(char *error = nullptr, size_t maxlen = 0);
 	bool LoadProvider(char *error = nullptr, size_t maxlen = 0);
@@ -266,18 +270,18 @@ private: // ConVars. See the constructor
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
 	void OnDispatchConCommandHook(ConCommandRef hCommand, const CCommandContext &aContext, const CCommand &aArgs);
-	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, uint32 hSocket, const C2S_CONNECT_Message &msg, const char *pszDecryptedPassword, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	bool OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
 public: // Dump ones.
-	static CBufferStringN<1024> DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage);
-	static void DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage);
-	static void DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList);
-	static void DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage);
-	static void DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage);
-	static void DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient);
-	static void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
+	static CBufferStringN<1024> DumpProtobufMessage(const CConcatLineString *pConcat, const google::protobuf::Message &aMessage);
+	static void DumpEngineLoopState(const CConcatLineBuffer &aConcat, const EngineLoopState_t &aMessage);
+	static void DumpEntityList(const CConcatLineBuffer &aConcat, const CUtlVector<CEntityHandle> &vecEntityList);
+	static void DumpEventSimulate(const CConcatLineBuffer &aConcat, const CConcatLineBuffer &aConcat2, const EventSimulate_t &aMessage);
+	static void DumpEventFrameBoundary(const CConcatLineBuffer &aConcat, const EventFrameBoundary_t &aMessage);
+	static void DumpServerSideClient(const CConcatLineBuffer &aConcat, CServerSideClientBase *pClient);
+	static void DumpDisconnectReason(const CConcatLineBuffer &aConcat, ENetworkDisconnectionReason eReason);
 
 public: // Utils.
 	void SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie);
@@ -286,7 +290,7 @@ public: // Utils.
 
 protected: // Handlers.
 	void OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession);
-	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient);
 	bool OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason);
 

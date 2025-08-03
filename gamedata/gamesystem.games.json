@@ -11,12 +11,12 @@
 
 				"win64":
 				{
-					"read_offs32": 53
+					"read_offs32": 54
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 72
+					"read_offs32": 73
 				}
 			},
 
@@ -26,12 +26,12 @@
 
 				"win64":
 				{
-					"read_offs32": 177
+					"read_offs32": 516
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 211
+					"read_offs32": 99
 				}
 			},
 
@@ -41,12 +41,12 @@
 
 				"win64":
 				{
-					"read_offs32": 384
+					"read_offs32": 291
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 192
+					"read_offs32": 284
 				}
 			},
 
@@ -56,27 +56,12 @@
 
 				"win64":
 				{
-					"read_offs32": 152
+					"read_offs32": 671
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 586
-				}
-			},
-
-			"&s_outOfGameEventDispatcher":
-			{
-				"signature": "IGameSystem::InitAllSystems",
-
-				"win64":
-				{
-					"read_offs32": 411
-				},
-
-				"linuxsteamrt64":
-				{
-					"read_offs32": 999
+					"read_offs32": 1459
 				}
 			}
 		},
@@ -95,8 +80,8 @@
 					"IGameSystem::PostInit( %-80s ) %8.3f msec"
 				],
 
-				"win64": "40 53 56 57 41 55 48 83 EC 68",
-				"linuxsteamrt64": "55 48 8D 05 ? ? ? ? 48 89 E5 41 57 41 56 41 55 41 BD 00 00 00 80"
+				"win64": "48 89 5C 24 ? 55 56 57 48 83 EC ? 48 8D 05",
+				"linuxsteamrt64": "55 48 8D 05 ? ? ? ? 48 89 E5 41 57 41 56 41 55 4C 8D 6D ? 41 54 4C 8D 25"
 			},
 
 			"IGameSystem::LoopInitAllSystems":
@@ -109,8 +94,8 @@
 					"%s:  IGameSystem::LoopInitAllSystems(finish)\n", "SV"
 				],
 
-				"win64": "48 89 5C 24 ? 57 48 83 EC ? 48 8B FA 48 8B D9 48 8D 15 ? ? ? ? 48 8D 0D",
-				"linuxsteamrt64": "55 31 C0 48 89 E5 41 57 41 56 41 55 41 54 53 31 DB"
+				"win64": "48 8B C4 48 89 50 ? 48 89 48 ? 53 48 83 EC",
+				"linuxsteamrt64": "55 66 48 0F 6E D7"
 			}
 		}
 	}

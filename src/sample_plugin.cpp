@@ -28,6 +28,7 @@
 #include <exception>
 
 #include <any_config.hpp>
+#include <concat.hpp>
 
 #include <sourcehook/sourcehook.h>
 
@@ -44,34 +45,17 @@
 #include <usermessages.pb.h>
 #include <connectionless_netmessages.pb.h>
 
+#include <netmessages.h>
+#include <usermessages.h>
+
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandRef, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
-SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, void *, C2S_CONNECT_Message *, const char *, const byte *, int, bool);
+SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, uint32, const C2S_CONNECT_Message &, const char *, const byte *, int, bool);
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
 static Sample_Plugin s_aSamplePlugin;
 Sample_Plugin *g_pSamplePlugin = &s_aSamplePlugin;
-
-const ConcatLineString s_aEmbedConcat =
-{
-	{
-		"\t", // Start message.
-		": ", // Padding of key & value.
-		"\n", // End.
-		"\n\t", // End and next line.
-	}
-};
-
-const ConcatLineString s_aEmbed2Concat =
-{
-	{
-		"\t\t",
-		": ",
-		"\n",
-		"\n\t\t",
-	}
-};
 
 PLUGIN_EXPOSE(Sample_Plugin, s_aSamplePlugin);
 
@@ -133,10 +117,10 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sMessage;
+		CMassiveBufferString sBuffer;
 
-		DumpGlobals(s_aEmbedConcat, sMessage);
-		CLogger::Detailed(sMessage);
+		DumpGlobals(CConcatLineBuffer(&g_aEmbedConcat, &sBuffer));
+		CLogger::Detailed(sBuffer);
 	}
 
 	ConVar_Register(FCVAR_RELEASE | FCVAR_GAMEDLL);
@@ -148,11 +132,11 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sMessage;
+		CMassiveBufferString sBuffer;
 
-		sMessage.Insert(0, "Path resolver:\n");
-		s_aEmbedConcat.AppendToBuffer(sMessage, "Base game directory", m_sBaseGameDirectory.c_str());
-		CLogger::Detailed(sMessage);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append("Path resolver");
+		CConcatLineBuffer(&g_aEmbedConcat, &sBuffer).Append<false, true>("Base game directory", m_sBaseGameDirectory.c_str());
+		CLogger::Detailed(sBuffer);
 	}
 
 	if(!InitProvider(error, maxlen))
@@ -197,7 +181,7 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 			{
 				if(pClient->IsConnected() && !pClient->IsFakeClient())
 				{
-					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, NULL, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					OnConnectClient(pNetServer, pClient);
 				}
 			}
 		}
@@ -207,7 +191,7 @@ bool Sample_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen,
 
 	// Print CPU information.
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
 		GetCPUInformation().GetDescription(&sBuffer, CPUInformation::CPUDESC_ALL);
 		CLogger::Message(sBuffer);
@@ -358,11 +342,6 @@ CGameSystemEventDispatcher **Sample_Plugin::GetGameSystemEventDispatcherPointer(
 	return GetGameDataStorage().GetGameSystem().GetEventDispatcher();
 }
 
-CGameSystemEventDispatcher *Sample_Plugin::GetOutOfGameEventDispatcher() const
-{
-	return GetGameDataStorage().GetGameSystem().GetOutOfGameEventDispatcher();
-}
-
 IGameEventManager2 **Sample_Plugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
@@ -419,28 +398,13 @@ GS_EVENT_MEMBER(Sample_Plugin, GameInit)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
-
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CMassiveBufferString sBuffer;
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-#ifndef _WIN32
-			try
-			{
-				CBufferStringN<1024> sProtoBuffer;
-
-				aConcat.AppendToBuffer(sBuffer, "Config", DumpProtobufMessage(aConcat2, *msg.m_pConfig).Get());
-			}
-			catch(const std::exception &aError)
-			{
-				aConcat.AppendToBuffer(sBuffer, "Config", aError.what());
-			}
-#endif
-
-			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			aConcat.Append("Config", DumpProtobufMessage(&g_aEmbed2Concat, *msg.m_pConfig).Get());
+			aConcat.Append("Registry", msg.m_pRegistry);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -459,26 +423,16 @@ GS_EVENT_MEMBER(Sample_Plugin, GamePostInit)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-#ifndef _WIN32
-			try
-			{
-				aConcat.AppendToBuffer(sBuffer, "Config", DumpProtobufMessage(aConcat2, *msg.m_pConfig).Get());
-			}
-			catch(const std::exception &aError)
-			{
-				aConcat.AppendToBuffer(sBuffer, "Config", aError.what());
-			}
-#endif
-
-			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
+			aConcat.Append("Config", DumpProtobufMessage(&g_aEmbed2Concat, *msg.m_pConfig).Get());
+			aConcat.Append("Registry", msg.m_pRegistry);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -497,14 +451,14 @@ GS_EVENT_MEMBER(Sample_Plugin, BuildGameSessionManifest)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendPointerToBuffer(sBuffer, "Resource manifest", msg.m_pResourceManifest);
+			aConcat.Append("Resource manifest", msg.m_pResourceManifest);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -515,17 +469,17 @@ GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Event loop");
-			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
-			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap);
+			aConcat.Append("Event loop");
+			DumpEngineLoopState(aConcat2, *msg.m_pState);
+			aConcat.Append("Back ground map", msg.m_bBackgroundMap);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -533,11 +487,11 @@ GS_EVENT_MEMBER(Sample_Plugin, GameActivate)
 
 	// Initialize a game resource.
 	{
-		char sMessage[256];
+		char sBuffer[256];
 
-		if(!RegisterGameResource(sMessage, sizeof(sMessage)))
+		if(!RegisterGameResource(sBuffer, sizeof(sBuffer)))
 		{
-			CLogger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sBuffer);
 		}
 	}
 }
@@ -562,17 +516,17 @@ GS_EVENT_MEMBER(Sample_Plugin, GameDeactivate)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Event loop");
-			DumpEngineLoopState(aConcat2, sBuffer, *msg.m_pState);
-			aConcat.AppendToBuffer(sBuffer, "Back ground map", msg.m_bBackgroundMap);
+			aConcat.Append("Event loop");
+			DumpEngineLoopState(aConcat2, *msg.m_pState);
+			aConcat.Append("Back ground map", msg.m_bBackgroundMap);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -583,21 +537,21 @@ GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupPrecache)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat.AppendToBuffer(sBuffer, "Entity count", msg.m_nEntityCount);
-			aConcat.AppendPointerToBuffer(sBuffer, "Entities to spawn", msg.m_pEntitiesToSpawn);
-			aConcat.AppendPointerToBuffer(sBuffer, "Registry", msg.m_pRegistry);
-			aConcat.AppendPointerToBuffer(sBuffer, "Manifest", msg.m_pManifest);
-			aConcat.AppendPointerToBuffer(sBuffer, "Config", msg.m_pConfig);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
+			aConcat.Append("Entity count", msg.m_nEntityCount);
+			aConcat.Append("Entities to spawn", msg.m_pEntitiesToSpawn);
+			aConcat.Append("Registry", msg.m_pRegistry);
+			aConcat.Append("Manifest", msg.m_pManifest);
+			aConcat.Append("Config", msg.m_pConfig);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -608,17 +562,17 @@ GS_EVENT_MEMBER(Sample_Plugin, SpawnGroupUncache)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -629,16 +583,16 @@ GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupLoad)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -649,19 +603,19 @@ GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupLoad)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat.AppendToBuffer(sBuffer, "Entity list");
-			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
+			aConcat.Append("Entity list");
+			DumpEntityList(aConcat2, msg.m_EntityList);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -672,19 +626,19 @@ GS_EVENT_MEMBER(Sample_Plugin, PreSpawnGroupUnload)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat.AppendToBuffer(sBuffer, "Entity list");
-			DumpEntityList(aConcat2, sBuffer, msg.m_EntityList);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
+			aConcat.Append("Entity list");
+			DumpEntityList(aConcat2, msg.m_EntityList);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -695,18 +649,18 @@ GS_EVENT_MEMBER(Sample_Plugin, PostSpawnGroupUnload)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			CBufferStringN<1024> sBuffer;
+			CMassiveBufferString sBuffer;
 
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendStringToBuffer(sBuffer, "Entity lump name", msg.m_EntityLumpName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append<false, true>("Entity lump name", msg.m_EntityLumpName.String());
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -717,18 +671,18 @@ GS_EVENT_MEMBER(Sample_Plugin, ActiveSpawnGroupChanged)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			CBufferStringN<1024> sBuffer;
+			CMassiveBufferString sBuffer;
 
-			aConcat.AppendHandleToBuffer(sBuffer, "Spawn group handle", msg.m_SpawnGroupHandle);
-			aConcat.AppendStringToBuffer(sBuffer, "Spawn group name", msg.m_SpawnGroupName);
-			aConcat.AppendHandleToBuffer(sBuffer, "Previous handle", msg.m_PreviousHandle);
+			aConcat.Append("Spawn group handle", static_cast<uint32>(msg.m_SpawnGroupHandle));
+			aConcat.Append<false, true>("Spawn group name", msg.m_SpawnGroupName.String());
+			aConcat.Append("Previous handle", msg.m_PreviousHandle);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -747,14 +701,14 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreRender)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
+			aConcat.Append("Frame time", msg.m_flFrameTime);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -765,15 +719,15 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
-			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			aConcat.Append("First tick", msg.m_bFirstTick);
+			aConcat.Append("Last tick", msg.m_bLastTick);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -784,16 +738,16 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Frame time", msg.m_flFrameTime);
-			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
-			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			aConcat.Append("Frame time", msg.m_flFrameTime);
+			aConcat.Append("First tick", msg.m_bFirstTick);
+			aConcat.Append("Last tick", msg.m_bLastTick);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -812,15 +766,15 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
-			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			aConcat.Append("First tick", msg.m_bFirstTick);
+			aConcat.Append("Last tick", msg.m_bLastTick);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -831,15 +785,15 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerPostEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "First tick", msg.m_bFirstTick);
-			aConcat.AppendToBuffer(sBuffer, "Last tick", msg.m_bLastTick);
+			aConcat.Append("First tick", msg.m_bFirstTick);
+			aConcat.Append("Last tick", msg.m_bLastTick);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -858,15 +812,15 @@ GS_EVENT_MEMBER(Sample_Plugin, ServerGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
+			DumpEventSimulate(aConcat, aConcat2, msg);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -877,16 +831,15 @@ GS_EVENT_MEMBER(Sample_Plugin, ClientGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-
-			DumpEventSimulate(aConcat, aConcat2, sBuffer, msg);
+			DumpEventSimulate(aConcat, aConcat2, msg);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -897,14 +850,14 @@ GS_EVENT_MEMBER(Sample_Plugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			DumpEventFrameBoundary(aConcat, sBuffer, msg);
+			DumpEventFrameBoundary(aConcat, msg);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -915,14 +868,14 @@ GS_EVENT_MEMBER(Sample_Plugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.Get() && CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-			DumpEventFrameBoundary(aConcat, sBuffer, msg);
+			DumpEventFrameBoundary(aConcat, msg);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -933,16 +886,16 @@ GS_EVENT_MEMBER(Sample_Plugin, SaveGame)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Entity list");
-			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
+			aConcat.Append("Entity list");
+			DumpEntityList(aConcat2, *msg.m_pEntityList);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -953,16 +906,16 @@ GS_EVENT_MEMBER(Sample_Plugin, RestoreGame)
 {
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sBuffer;
+		CMassiveBufferString sBuffer;
 
-		sBuffer.Format("%s:\n", __FUNCTION__);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(__FUNCTION__);
 
 		{
-			const auto &aConcat = s_aEmbedConcat, 
-			           &aConcat2 = s_aEmbed2Concat;
+			const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+			                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-			aConcat.AppendToBuffer(sBuffer, "Entity list");
-			DumpEntityList(aConcat2, sBuffer, *msg.m_pEntityList);
+			aConcat.Append("Entity list");
+			DumpEntityList(aConcat2, *msg.m_pEntityList);
 		}
 
 		CLogger::Detailed(sBuffer);
@@ -1020,9 +973,9 @@ void Sample_Plugin::FireGameEvent(IGameEvent *event)
 			while(i < nMemberCount);
 
 			aDetails.Push("}");
-			aDetails.Send([&](const CUtlString &sMessage)
+			aDetails.Send([&](const CUtlString &sBuffer)
 			{
-				CLogger::Detailed(sMessage);
+				CLogger::Detailed(sBuffer);
 			});
 		}
 	}
@@ -1054,7 +1007,7 @@ bool Sample_Plugin::ClearPathResolver(char *error, size_t maxlen)
 
 bool Sample_Plugin::InitProvider(char *error, size_t maxlen)
 {
-	GameData::CBufferStringVector vecMessages;
+	Provider::CStringVector vecMessages;
 
 	bool bResult = Provider::Init(vecMessages);
 
@@ -1091,7 +1044,7 @@ bool Sample_Plugin::InitProvider(char *error, size_t maxlen)
 
 bool Sample_Plugin::LoadProvider(char *error, size_t maxlen)
 {
-	GameData::CBufferStringVector vecMessages;
+	Provider::CStringVector vecMessages;
 
 	bool bResult = Provider::Load(m_sBaseGameDirectory.c_str(), SAMPLE_BASE_PATHID, vecMessages);
 
@@ -1128,7 +1081,7 @@ bool Sample_Plugin::LoadProvider(char *error, size_t maxlen)
 
 bool Sample_Plugin::UnloadProvider(char *error, size_t maxlen)
 {
-	GameData::CBufferStringVector vecMessages;
+	Provider::CStringVector vecMessages;
 
 	bool bResult = Provider::Destroy(vecMessages);
 
@@ -1251,14 +1204,6 @@ bool Sample_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 			Assert(pDispatcher);
 
 			pDispatcher->UnregisterListener(pGameSystem);
-		}
-
-		{
-			auto *pDispatcher2 = GetOutOfGameEventDispatcher();
-
-			Assert(pDispatcher2);
-
-			pDispatcher2->UnregisterListener(pGameSystem);
 		}
 
 		// Clean up the added game system.
@@ -1406,14 +1351,14 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 	const char *pszPathID = SAMPLE_BASE_PATHID, 
 	           *pszLanguagesFiles = sTranslationsFilesPath.c_str();
 
-	CUtlVector<CUtlString> vecLangugesFiles;
+	CUtlVector<CUtlString> vecLangugesFiles(0, 1);
 	CUtlVector<CUtlString> vecSubmessages;
 
-	CUtlString sMessage;
+	CUtlString sBuffer;
 
 	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sBuffer, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecLangugesFiles, pszLanguagesFiles, pszPathID);
 
@@ -1437,7 +1382,7 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 
 		if(!aLanguagesConfig.Load(aLoadPresets))
 		{
-			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sBuffer.Get());
 
 			continue;
 		}
@@ -1457,9 +1402,9 @@ bool Sample_Plugin::ParseLanguages(char *error, size_t maxlen)
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([&](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sBuffer)
 		{
-			CLogger::Warning(sMessage);
+			CLogger::Warning(sBuffer);
 		});
 	}
 
@@ -1518,15 +1463,15 @@ bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 	const char *pszPathID = SAMPLE_BASE_PATHID, 
 	           *pszTranslationsFiles = sTranslationsFilesPath.c_str();
 
-	CUtlVector<CUtlString> vecTranslationsFiles;
+	CUtlVector<CUtlString> vecTranslationsFiles(0, 1);
 
-	Translations::CBufferStringVector vecSubmessages;
+	Translations::CStringVector vecSubmessages;
 
-	CUtlString sMessage;
+	CUtlString sBuffer;
 
 	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sBuffer, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecTranslationsFiles, pszTranslationsFiles, pszPathID);
 
@@ -1550,12 +1495,12 @@ bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 
 		if(!aTranslationsConfig.Load(aLoadPresets))
 		{
-			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sBuffer.Get());
 
 			continue;
 		}
 
-		if(!Translations::Parse(aTranslationsConfig.Get(), vecSubmessages))
+		if(!Translations::Parse(aTranslationsConfig.Get(), static_cast<Translations::IPhraseReplacer *>(this), vecSubmessages))
 		{
 			aWarnings.PushFormat("\"%s\"", pszFilename);
 
@@ -1570,9 +1515,9 @@ bool Sample_Plugin::ParseTranslations(char *error, size_t maxlen)
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([&](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sBuffer)
 		{
-			CLogger::Warning(sMessage);
+			CLogger::Warning(sBuffer);
 		});
 	}
 
@@ -1590,15 +1535,15 @@ bool Sample_Plugin::ParseGameEvents()
 {
 	const char *pszPathID = SAMPLE_BASE_PATHID;
 
-	CUtlVector<CUtlString> vecGameEventFiles;
+	CUtlVector<CUtlString> vecGameEventFiles(0, 1);
 
 	CUtlVector<CUtlString> vecSubmessages;
 
-	CUtlString sMessage;
+	CUtlString sBuffer;
 
 	auto aWarnings = CLogger::CreateWarningsScope();
 
-	AnyConfig::CLoadFromFile_General aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
+	AnyConfig::CLoadFromFile_General aLoadPresets({{&sBuffer, NULL, pszPathID}, g_KV3Format_Generic});
 
 	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, SAMPLE_GAME_EVENTS_FILES, pszPathID);
 
@@ -1612,7 +1557,7 @@ bool Sample_Plugin::ParseGameEvents()
 
 		if(!aGameEventConfig.Load(aLoadPresets))
 		{
-			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
+			aWarnings.PushFormat("\"%s\": %s", pszFilename, sBuffer.Get());
 
 			continue;
 		}
@@ -1634,9 +1579,9 @@ bool Sample_Plugin::ParseGameEvents()
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([&](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sBuffer)
 		{
-			CLogger::Warning(sMessage);
+			CLogger::Warning(sBuffer);
 		});
 	}
 
@@ -1654,7 +1599,7 @@ bool Sample_Plugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &v
 		return false;
 	}
 
-	CUtlString sMessage;
+	CUtlString sBuffer;
 
 	KV3MemberId_t i = 0;
 
@@ -1664,8 +1609,8 @@ bool Sample_Plugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &v
 
 		if(!pszEvent)
 		{
-			sMessage.Format("No member name at #%d", i);
-			vecMessages.AddToTail(sMessage);
+			sBuffer.Format("No member name at #%d", i);
+			vecMessages.AddToTail(sBuffer);
 
 			continue;
 		}
@@ -1710,9 +1655,9 @@ bool Sample_Plugin::HookGameEvents()
 
 	if(aWarnings.Count())
 	{
-		aWarnings.Send([&](const CUtlString &sMessage)
+		aWarnings.Send([&](const CUtlString &sBuffer)
 		{
-			CLogger::Warning(sMessage);
+			CLogger::Warning(sBuffer);
 		});
 	}
 
@@ -1799,21 +1744,19 @@ void Sample_Plugin::OnDispatchConCommandHook(ConCommandRef hCommand, const CComm
 
 					if(CLogger::IsChannelEnabled(LV_DETAILED))
 					{
-						const auto &aConcat = s_aEmbedConcat, 
-						           &aConcat2 = s_aEmbed2Concat;
+						CMassiveBufferString sBuffer;
 
-						CBufferStringN<1024> sBuffer;
+						const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+						                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-						sBuffer.Format("Handle a chat command:\n");
-						aConcat.AppendToBuffer(sBuffer, "Player slot", aPlayerSlot.Get());
-						aConcat.AppendToBuffer(sBuffer, "Is silent", bIsSilent);
-						aConcat.AppendToBuffer(sBuffer, "Arguments");
+						CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append("Handling chat command");
+						aConcat.Append("Player slot", aPlayerSlot.Get());
+						aConcat.Append("Is silent", bIsSilent);
+						aConcat.Append("Arguments");
 
 						for(const auto &sArg : vecArgs)
 						{
-							const char *pszMessageConcat[] = {aConcat2.m_aStartWith, "\"", sArg.Get(), "\"", aConcat2.m_aEnd};
-
-							sBuffer.AppendConcat(ARRAYSIZE(pszMessageConcat), pszMessageConcat, NULL);
+							aConcat2.Append<false, true>(sArg.Get());
 						}
 
 						CLogger::Detailed(sBuffer);
@@ -1839,14 +1782,41 @@ void Sample_Plugin::OnStartupServerHook(const GameSessionConfiguration_t &config
 	RETURN_META(MRES_IGNORED);
 }
 
-CServerSideClientBase *Sample_Plugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
-                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+CServerSideClientBase *Sample_Plugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, uint32 hSocket, const C2S_CONNECT_Message &msg, 
+                                                          const char *pszDecryptedPassword, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
 
 	auto *pClient = META_RESULT_ORIG_RET(CServerSideClientBase *);
 
-	OnConnectClient(pNetServer, pClient, pszName, pAddr, pNetInfo, pConnectMsg, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
+	if(CLogger::IsChannelEnabled(LV_DEFAULT))
+	{
+		CBufferStringN<2048> sBuffer;
+
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+		                        aConcat2(&g_aEmbed2Concat, &sBuffer);
+
+		if(hSocket)
+		{
+			aConcat.Append("Socket", hSocket);
+		}
+
+		aConcat.Append("Connect message", DumpProtobufMessage(&g_aEmbed2Concat, msg).Get());
+
+		if(pszDecryptedPassword)
+		{
+			aConcat.Append<false, true>("Attempt password", pszDecryptedPassword);
+		}
+
+		if(pAuthTicket && nAuthTicketLength)
+		{
+			aConcat.AppendBytes("Auth ticket", pAuthTicket, nAuthTicketLength);
+		}
+
+		CLogger::Detailed(sBuffer);
+	}
+
+	OnConnectClient(pNetServer, pClient);
 
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
@@ -1869,73 +1839,93 @@ void Sample_Plugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
-CBufferStringN<1024> Sample_Plugin::DumpProtobufMessage(const ConcatLineString &aConcat, const google::protobuf::Message &aMessage)
+CMassiveBufferString Sample_Plugin::DumpProtobufMessage(const CConcatLineString *pConcat, const google::protobuf::Message &msg)
 {
-	CBufferStringN<1024> sResult;
+	CMassiveBufferString sResult;
 
-	sResult.Insert(0, aMessage.DebugString().c_str());
-	sResult.Replace("\n", aConcat.m_aEndAndNextLine);
-	sResult.SetLength(sResult.Length() - V_strlen(aConcat.m_aEndAndNextLine)); // Strip the last next line, leaving the end.
-	sResult.Insert(0, aConcat.m_aEndAndNextLine);
+	try
+	{
+		const char *pszEnds = pConcat->GetEnds(), 
+		           *pszEndsAndStartsWith = pConcat->GetEndsAndStartsWith();
+
+		auto sBufferData = msg.DebugString();
+
+		sResult.Set(sBufferData.c_str(), sBufferData.length());
+		sResult.Replace(pszEnds, pszEndsAndStartsWith);
+
+		int nNewLength = sResult.Length() - V_strlen(pszEndsAndStartsWith);
+
+		// Strip the last next line, leaving the end.
+		if(nNewLength >= 0)
+		{
+			sResult.SetLength(nNewLength);
+		}
+
+		sResult.Insert(0, pszEndsAndStartsWith);
+	}
+	catch(const std::exception &error)
+	{
+		sResult.Set(error.what(), -1);
+	}
 
 	return sResult;
 }
 
-void Sample_Plugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
+void Sample_Plugin::DumpEngineLoopState(const CConcatLineBuffer &aConcat, const EngineLoopState_t &aMessage)
 {
-	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
-	aConcat.AppendHandleToBuffer(sOutput, "Swap chain handle", aMessage.m_hSwapChain);
-	aConcat.AppendHandleToBuffer(sOutput, "Input context handle", aMessage.m_hInputContext);
-	aConcat.AppendToBuffer(sOutput, "Window width", aMessage.m_nPlatWindowWidth);
-	aConcat.AppendToBuffer(sOutput, "Window height", aMessage.m_nPlatWindowHeight);
-	aConcat.AppendToBuffer(sOutput, "Render width", aMessage.m_nRenderWidth);
-	aConcat.AppendToBuffer(sOutput, "Render height", aMessage.m_nRenderHeight);
+	aConcat.Append("Window handle", reinterpret_cast<void *>(aMessage.m_hWnd));
+	aConcat.Append("Swap chain handle", reinterpret_cast<void *>(aMessage.m_hSwapChain));
+	aConcat.Append("Input context handle", reinterpret_cast<void *>(aMessage.m_hInputContext));
+	aConcat.Append("Window width", aMessage.m_nPlatWindowWidth);
+	aConcat.Append("Window height", aMessage.m_nPlatWindowHeight);
+	aConcat.Append("Render width", aMessage.m_nRenderWidth);
+	aConcat.Append("Render height", aMessage.m_nRenderHeight);
 }
 
-void Sample_Plugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
+void Sample_Plugin::DumpEntityList(const CConcatLineBuffer &aConcat, const CUtlVector<CEntityHandle> &vecEntityList)
 {
 	for(const auto &it : vecEntityList)
 	{
-		aConcat.AppendToBuffer(sOutput, it.Get()->GetClassname(), it.GetEntryIndex());
+		aConcat.Append(it.Get()->GetClassname(), it.GetEntryIndex());
 	}
 }
 
-void Sample_Plugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
+void Sample_Plugin::DumpEventSimulate(const CConcatLineBuffer &aConcat, const CConcatLineBuffer &aConcat2, const EventSimulate_t &aMessage)
 {
-	aConcat.AppendToBuffer(sOutput, "Loop state");
-	DumpEngineLoopState(aConcat2, sOutput, aMessage.m_LoopState);
-	aConcat.AppendToBuffer(sOutput, "First tick", aMessage.m_bFirstTick);
-	aConcat.AppendToBuffer(sOutput, "Last tick", aMessage.m_bLastTick);
+	aConcat.Append("Loop state");
+	DumpEngineLoopState(aConcat2, aMessage.m_LoopState);
+	aConcat.Append("First tick", aMessage.m_bFirstTick);
+	aConcat.Append("Last tick", aMessage.m_bLastTick);
 }
 
-void Sample_Plugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
+void Sample_Plugin::DumpEventFrameBoundary(const CConcatLineBuffer &aConcat, const EventFrameBoundary_t &aMessage)
 {
-	aConcat.AppendToBuffer(sOutput, "Frame time", aMessage.m_flFrameTime);
+	aConcat.Append("Frame time", aMessage.m_flFrameTime);
 }
 
-void Sample_Plugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
+void Sample_Plugin::DumpServerSideClient(const CConcatLineBuffer &aConcat, CServerSideClientBase *pClient)
 {
-	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
-	aConcat.AppendToBuffer(sOutput, "Player slot", pClient->GetPlayerSlot().Get());
-	aConcat.AppendToBuffer(sOutput, "Entity index", pClient->GetEntityIndex().Get());
-	aConcat.AppendToBuffer(sOutput, "UserID", pClient->GetUserID().Get());
-	aConcat.AppendToBuffer(sOutput, "Signon state", pClient->GetSignonState());
-	aConcat.AppendToBuffer(sOutput, "SteamID", pClient->GetClientSteamID().Render());
-	aConcat.AppendToBuffer(sOutput, "Is fake", pClient->IsFakeClient());
+	aConcat.Append<false, true>("Name", pClient->GetClientName());
+	aConcat.Append("Player slot", pClient->GetPlayerSlot().Get());
+	aConcat.Append("Entity index", pClient->GetEntityIndex().Get());
+	aConcat.Append("UserID", pClient->GetUserID().Get());
+	aConcat.Append("Signon state", static_cast<int>(pClient->GetSignonState()));
+	aConcat.Append("SteamID", pClient->GetClientSteamID().Render());
+	aConcat.Append("Is fake", pClient->IsFakeClient());
 
 	{
 		const netadr_t *pRemoteAddress = pClient->GetRemoteAddress();
 
-		aConcat.AppendToBuffer(sOutput, "Address", pRemoteAddress ? pRemoteAddress->ToString() : "<none>");
+		aConcat.Append("Address", pRemoteAddress ? pRemoteAddress->ToString() : "<none>");
 	}
 
-	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient());
-	aConcat.AppendToBuffer(sOutput, "Is fully authenticated", pClient->IsFullyAuthenticated());
+	aConcat.Append("Low violence", pClient->IsLowViolenceClient());
+	aConcat.Append("Is fully authenticated", pClient->IsFullyAuthenticated());
 }
 
-void Sample_Plugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
+void Sample_Plugin::DumpDisconnectReason(const CConcatLineBuffer &aConcat, ENetworkDisconnectionReason eReason)
 {
-	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
+	aConcat.Append("Disconnect reason", (int)eReason);
 }
 
 void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
@@ -1944,27 +1934,25 @@ void Sample_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *ps
 
 	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		CMassiveBufferString sBuffer;
 
-		CBufferStringN<1024> sBuffer;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
 		sBuffer.Format("Send get cvar message (%s):\n", pGetCvarValueMessage->GetUnscopedName());
-		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
-		aConcat.AppendToBuffer(sBuffer, "Cookie", iCookie);
+		aConcat.Append<false, true>("Cvar name", pszName);
+		aConcat.Append("Cookie", iCookie);
 
 		CLogger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->ToPB<CSVCMsg_GetCvarValue>();
+	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->As<CSVCMsg_GetCvarValue_t>();
 
 	pMessage->set_cvar_name(pszName);
 	pMessage->set_cookie(iCookie);
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pGetCvarValueMessage, pMessage, 0);
 
-#ifndef WIN32
-	Delete(pMessage);
-#endif
+	delete pMessage;
 }
 
 void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
@@ -1973,39 +1961,39 @@ void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex,
 
 	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		CMassiveBufferString sBuffer;
 
-		CBufferStringN<1024> sBuffer;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
 		sBuffer.Format("Send chat message (%s):\n", pSayText2Message->GetUnscopedName());
-		aConcat.AppendToBuffer(sBuffer, "Entity index", iEntityIndex);
-		aConcat.AppendToBuffer(sBuffer, "Is chat", bIsChat);
-		aConcat.AppendStringToBuffer(sBuffer, "Chat message", pszChatMessageFormat);
+		aConcat.Append("Entity index", iEntityIndex);
+		aConcat.Append("Is chat", bIsChat);
+		aConcat.Append<false, true>("Chat message", pszChatMessageFormat);
 
 		if(pszParam1 && *pszParam1)
 		{
-			aConcat.AppendStringToBuffer(sBuffer, "Parameter #1", pszParam1);
+			aConcat.Append<false, true>("Parameter #1", pszParam1);
 		}
 
 		if(pszParam2 && *pszParam2)
 		{
-			aConcat.AppendStringToBuffer(sBuffer, "Parameter #2", pszParam2);
+			aConcat.Append<false, true>("Parameter #2", pszParam2);
 		}
 
 		if(pszParam3 && *pszParam3)
 		{
-			aConcat.AppendStringToBuffer(sBuffer, "Parameter #3", pszParam3);
+			aConcat.Append<false, true>("Parameter #3", pszParam3);
 		}
 
 		if(pszParam4 && *pszParam4)
 		{
-			aConcat.AppendStringToBuffer(sBuffer, "Parameter #4", pszParam4);
+			aConcat.Append<false, true>("Parameter #4", pszParam4);
 		}
 
 		CLogger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pSayText2Message->AllocateMessage()->ToPB<CUserMessageSayText2>();
+	auto *pMessage = pSayText2Message->AllocateMessage()->As<CUserMessageSayText2_t>();
 
 	pMessage->set_entityindex(iEntityIndex);
 	pMessage->set_chat(bIsChat);
@@ -2017,9 +2005,7 @@ void Sample_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex,
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSayText2Message, pMessage, 0);
 
-#ifndef WIN32
-	Delete(pMessage);
-#endif
+	delete pMessage;
 }
 
 void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
@@ -2028,17 +2014,17 @@ void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination,
 
 	if(CLogger::IsChannelEnabled(LV_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		CMassiveBufferString sBuffer;
 
-		CBufferStringN<1024> sBuffer;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
-		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
-		aConcat.AppendToBuffer(sBuffer, "Parameter", pszParam);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append(pTextMsg->GetUnscopedName());
+		aConcat.Append("Destination", iDestination);
+		aConcat.Append("Parameter", pszParam);
 		CLogger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pTextMsg->AllocateMessage()->ToPB<CUserMessageTextMsg>();
+	auto *pMessage = pTextMsg->AllocateMessage()->As<CUserMessageTextMsg_t>();
 
 	pMessage->set_dest(iDestination);
 	pMessage->add_param(pszParam);
@@ -2066,9 +2052,7 @@ void Sample_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination,
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pTextMsg, pMessage, 0);
 
-#ifndef WIN32
-	Delete(pMessage);
-#endif
+	delete pMessage;
 }
 
 void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
@@ -2078,59 +2062,40 @@ void Sample_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Ga
 	// Initialize & hook game evetns.
 	// Initialize network messages.
 	{
-		char sMessage[256];
+		char sBuffer[256];
 
-		if(RegisterSource2Server(sMessage, sizeof(sMessage)))
+		if(RegisterSource2Server(sBuffer, sizeof(sBuffer)))
 		{
 			HookGameEvents();
 		}
 		else
 		{
-			CLogger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sBuffer);
 		}
 
-		if(!RegisterNetMessages(sMessage, sizeof(sMessage)))
+		if(!RegisterNetMessages(sBuffer, sizeof(sBuffer)))
 		{
-			CLogger::WarningFormat("%s\n", sMessage);
+			CLogger::WarningFormat("%s\n", sBuffer);
 		}
 	}
 
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		CMassiveBufferString sBuffer;
 
-		CBufferStringN<1024> sMessage;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-#ifndef _WIN32
-		try
-		{
-			sMessage.Format("Receive %s message:", config.GetTypeName().c_str());
+		sBuffer.Format("Receive %s message:", config.GetTypeName().c_str());
+		sBuffer.Append(DumpProtobufMessage(&g_aEmbedConcat, config).Get());
 
-			try
-			{
-				sMessage.Insert(sMessage.Length(), DumpProtobufMessage(aConcat, config).Get());
-			}
-			catch(const std::exception &aError)
-			{
-				sMessage.Insert(sMessage.Length(), aError.what());
-			}
-		}
-		catch(const std::exception &aError)
-		{
-			sMessage.Format("Receive a proto message: %s", aError.what());
-		}
+		sBuffer.AppendFormat("Register globals:\n");
+		DumpRegisterGlobals(aConcat);
 
-		sMessage.Insert(sMessage.Length(), "\n");
-#endif
-
-		sMessage.AppendFormat("Register globals:\n");
-		DumpRegisterGlobals(aConcat, sMessage);
-
-		CLogger::Detailed(sMessage);
+		CLogger::Detailed(sBuffer);
 	}
 }
 
-void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient)
 {
 	if(pClient)
 	{
@@ -2150,50 +2115,17 @@ void Sample_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerS
 		return;
 	}
 
-	if(CLogger::IsChannelEnabled(LS_DETAILED))
+	if(CLogger::IsChannelEnabled(LS_DETAILED) && pClient)
 	{
-		const auto &aConcat = s_aEmbedConcat, 
-		           &aConcat2 = s_aEmbed2Concat;
+		CMassiveBufferString sBuffer;
 
-		CBufferStringN<1024> sMessage;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer), 
+		                        aConcat2(&g_aEmbed2Concat, &sBuffer);
 
-		sMessage.Insert(0, "Connect a client:\n");
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append("Connected client");
+		DumpServerSideClient(aConcat, pClient);
 
-		if(pClient)
-		{
-			DumpServerSideClient(aConcat, sMessage, pClient);
-		}
-
-		if(pNetInfo)
-		{
-			aConcat.AppendPointerToBuffer(sMessage, "Net info", pNetInfo);
-		}
-
-#ifndef _WIN32
-		if(pConnectMsg)
-		{
-			try
-			{
-				aConcat.AppendToBuffer(sMessage, "Connect message", DumpProtobufMessage(aConcat2, *pConnectMsg).Get());
-			}
-			catch(const std::exception &aError)
-			{
-				aConcat.AppendToBuffer(sMessage, "Connect message", aError.what());
-			}
-		}
-#endif
-
-		if(pszChallenge)
-		{
-			aConcat.AppendHandleToBuffer(sMessage, "Challenge", pszChallenge);
-		}
-
-		if(pAuthTicket && nAuthTicketLength)
-		{
-			aConcat.AppendBytesToBuffer(sMessage, "Auth ticket", pAuthTicket, nAuthTicketLength);
-		}
-
-		CLogger::Detailed(sMessage);
+		CLogger::Detailed(sBuffer);
 	}
 
 	if(!pClient)
@@ -2286,9 +2218,9 @@ bool Sample_Plugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, co
 
 		aPlayer.TranslatePhrases(this, this->m_aServerLanguage, vecMessages);
 
-		for(const auto &sMessage : vecMessages)
+		for(const auto &sBuffer : vecMessages)
 		{
-			aWarnings.Push(sMessage.Get());
+			aWarnings.Push(sBuffer.Get());
 		}
 
 		aWarnings.SendColor([&](Color rgba, const CUtlString &sContext)
@@ -2313,15 +2245,15 @@ void Sample_Plugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDi
 
 	if(CLogger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringN<1024> sMessage;
+		CMassiveBufferString sBuffer;
 
-		const auto &aConcat = s_aEmbedConcat;
+		const CConcatLineBuffer aConcat(&g_aEmbedConcat, &sBuffer);
 
-		sMessage.Insert(0, "Disconnect a client:\n");
-		DumpServerSideClient(aConcat, sMessage, pClient);
-		DumpDisconnectReason(aConcat, sMessage, eReason);
+		CConcatLineBuffer(&g_aRootConcat, &sBuffer).Append("Disconnect a client");
+		DumpServerSideClient(aConcat, pClient);
+		DumpDisconnectReason(aConcat, eReason);
 
-		CLogger::Detailed(sMessage);
+		CLogger::Detailed(sBuffer);
 	}
 
 	auto *pPlayer = reinterpret_cast<CServerSideClient *>(pClient);

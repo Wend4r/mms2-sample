@@ -28,7 +28,7 @@
 
 #	include <tier0/bufferstring.h>
 
-struct ConcatLineString;
+class CConcatLineBuffer;
 
 class IVEngineServer2;
 class ICvar;
@@ -52,8 +52,6 @@ class IGameEventManager2;
 #	include <interfaces/interfaces.h>
 #	include <igamesystemfactory.h>
 
-#	define GLOBALS_APPEND_VARIABLE(var) aConcat.AppendPointerToBuffer(sOutput, #var, var);
-
 extern IGameEventSystem *g_pGameEventSystem;
 extern CEntitySystem *g_pEntitySystem;
 extern CGameEntitySystem *g_pGameEntitySystem;
@@ -70,8 +68,8 @@ extern bool UnregisterFirstGameSystem();
 extern bool RegisterGameEventManager(IGameEventManager2 *pGameEventManager);
 extern bool UnregisterGameEventManager();
 
-extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
-extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
+extern void DumpGlobals(const CConcatLineBuffer &aConcat);
+extern void DumpRegisterGlobals(const CConcatLineBuffer &aConcat);
 extern bool DestoryGlobals(char *error = nullptr, size_t maxlen = 0);
 
 extern CGlobalVars *GetGameGlobals();

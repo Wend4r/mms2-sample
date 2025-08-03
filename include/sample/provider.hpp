@@ -55,10 +55,12 @@ namespace Sample
 	public:
 		Provider();
 
+		using CStringVector = GameData::CStringVector;
+
 	public:
-		bool Init(GameData::CBufferStringVector &vecMessages);
-		bool Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
-		bool Destroy(GameData::CBufferStringVector &vecMessages);
+		bool Init(CStringVector &vecMessages);
+		bool Load(const char *pszBaseDir, const char *pszPathID, CStringVector &vecMessages);
+		bool Destroy(CStringVector &vecMessages);
 
 	protected:
 		CUtlSymbolLarge GetSymbol(const char *pszText);
@@ -68,18 +70,18 @@ namespace Sample
 		const DynLibUtils::CModule *FindLibrary(const char *pszName) const;
 
 	protected:
-		bool LoadGameData(const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
+		bool LoadGameData(const char *pszBaseGameDir, const char *pszPathID, CStringVector &vecMessages);
 
 	public:
 		class GameDataStorage
 		{
 		public:
-			bool Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages);
+			bool Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, CStringVector &vecMessages);
 
 		protected:
-			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
-			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
-			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
+			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
+			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
 
 		public:
 			class CGameResource
@@ -88,14 +90,14 @@ namespace Sample
 				CGameResource();
 
 			public:
-				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
 				void Reset();
 
 			public:
 				ptrdiff_t GetEntitySystemOffset() const;
 
 			private:
-				GameData::Config::Offsets::ListenerCallbacksCollector m_aOffsetCallbacks;
+				GameData::Config::Offsets_t::CListenerCallbacksCollector m_aOffsetCallbacks;
 				GameData::Config m_aGameConfig;
 
 			private: // Offsets.
@@ -108,7 +110,7 @@ namespace Sample
 				CGameSystem();
 
 			public:
-				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
 				void Reset();
 
 			public:
@@ -116,10 +118,9 @@ namespace Sample
 				CUtlStringMap<IGameSystem::FactoryInfo_t> *GetFactories() const;
 				CUtlVector<AddedGameSystem_t> *GetList() const;
 				CGameSystemEventDispatcher **GetEventDispatcher() const;
-				CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const;
 
 			private:
-				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
+				GameData::Config::Addresses_t::CListenerCallbacksCollector m_aAddressCallbacks;
 				GameData::Config m_aGameConfig;
 
 			private: // Addresses.
@@ -136,14 +137,14 @@ namespace Sample
 				CSource2Server();
 
 			public:
-				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages);
 				void Reset();
 
 			public:
 				CGameEventManager **GetGameEventManagerPointer() const;
 
 			private:
-				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
+				GameData::Config::Addresses_t::CListenerCallbacksCollector m_aAddressCallbacks;
 				GameData::Config m_aGameConfig;
 
 			private: // Addresses.

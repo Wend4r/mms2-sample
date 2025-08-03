@@ -64,7 +64,7 @@ char Sample::ChatCommandSystem::GetSilentTrigger()
 
 bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArgs)
 {
-	if(aSlot == CPlayerSlot::InvalidIndex())
+	if(!aSlot.IsValid())
 	{
 		Message("Type the chat command from root console?\n");
 

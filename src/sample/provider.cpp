@@ -34,7 +34,7 @@ Sample::Provider::Provider()
 {
 }
 
-bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::Init(CStringVector &vecMessages)
 {
 	// Enigne 2.
 	{
@@ -81,7 +81,7 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 	return true;
 }
 
-bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, CStringVector &vecMessages)
 {
 	if(!LoadGameData(pszBaseDir, pszPathID, vecMessages))
 	{
@@ -93,7 +93,7 @@ bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameD
 	return true;
 }
 
-bool Sample::Provider::Destroy(GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::Destroy(CStringVector &vecMessages)
 {
 	m_mapLibraries.Purge();
 
@@ -119,17 +119,17 @@ CUtlSymbolLarge Sample::Provider::FindSymbol(const char *pszText) const
 	return m_aSymbolTable.Find(pszText);
 }
 
-bool Sample::Provider::LoadGameData(const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::LoadGameData(const char *pszBaseGameDir, const char *pszPathID, CStringVector &vecMessages)
 {
 	return m_aStorage.Load(this, pszBaseGameDir, pszPathID, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseGameDir, const char *pszPathID, CStringVector &vecMessages)
 {
 	const struct
 	{
 		const char *pszFilename;
-		bool (Sample::Provider::GameDataStorage::*pfnLoad)(IGameData *, KeyValues3 *, GameData::CBufferStringVector &);
+		bool (Sample::Provider::GameDataStorage::*pfnLoad)(IGameData *, KeyValues3 *, CStringVector &);
 	} aConfigs[] =
 	{
 		{
@@ -148,7 +148,7 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 
 	CBufferStringN<MAX_PATH> sConfigFile;
 
-	CUtlVector<CUtlString> vecConfigFiles;
+	CUtlVector<CUtlString> vecConfigFiles(0, 1);
 
 	CUtlString sError;
 
@@ -202,17 +202,17 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	return true;
 }
 
-bool Sample::Provider::GameDataStorage::LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages)
 {
 	return m_aGameResource.Load(pRoot, pGameConfig, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages)
 {
 	return m_aGameSystem.Load(pRoot, pGameConfig, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Sample::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, CStringVector &vecMessages)
 {
 	return m_aSource2Server.Load(pRoot, pGameConfig, vecMessages);
 }

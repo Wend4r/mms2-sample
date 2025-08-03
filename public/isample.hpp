@@ -27,6 +27,7 @@
 
 #	include <playerslot.h>
 #	include <igamesystem.h>
+#	include <tier1/utlvector.h>
 
 #	define SAMPLE_INTERFACE_NAME "Sample v1.0.0"
 
@@ -36,8 +37,6 @@ class CGameSystemEventDispatcher;
 class CServerSideClient;
 class IGameEventManager2;
 template<class T> class CUtlStringMap;
-template<class T, class I> class CUtlMemory;
-template<class T, class I, class A> class CUtlVector;
 struct AddedGameSystem_t;
 
 /**
@@ -73,7 +72,7 @@ public:
 	 * 
 	 * @return              A pointer to a list of game systems.
 	 */
-	virtual CUtlVector<AddedGameSystem_t, int, CUtlMemory<AddedGameSystem_t, int>> *GetGameSystemsPointer() const = 0;
+	virtual CUtlVector<AddedGameSystem_t> *GetGameSystemsPointer() const = 0;
 
 	/**
 	 * @brief Gets a game system event dispatcher.
@@ -81,13 +80,6 @@ public:
 	 * @return              A double pointer to a game system event dispatcher.
 	 */
 	virtual CGameSystemEventDispatcher **GetGameSystemEventDispatcherPointer() const = 0;
-
-	/**
-	 * @brief Gets a out of game system event dispatcher.
-	 * 
-	 * @return              A pointer to an out of game system event dispatcher.
-	 */
-	virtual CGameSystemEventDispatcher *GetOutOfGameEventDispatcher() const = 0;
 
 	/**
 	 * @brief Gets a game event manager.
